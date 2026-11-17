@@ -84,6 +84,25 @@ local function faceOf(front)
     return front==1 and Enum.NormalId.Back or Enum.NormalId.Front
 end
 
+-- Roblox-Parts duerfen je Achse maximal 2048 Studs gross sein.
+-- Lange Flaechen werden deshalb in gleichfarbige, lueckenlose Segmente geteilt.
+local function partAlongZ(parent,name,width,height,zStart,zEnd,x,y,mat,col,collide,transparency)
+    local at=zStart
+    while at<zEnd do
+        local len=math.min(1900,zEnd-at)
+        part(parent,name,Vector3.new(width,height,len),Vector3.new(x,y,at+len/2),mat,col,collide,transparency)
+        at+=len
+    end
+end
+local function partAlongX(parent,name,xStart,xEnd,height,depth,y,z,mat,col,collide,transparency)
+    local at=xStart
+    while at<xEnd do
+        local len=math.min(1900,xEnd-at)
+        part(parent,name,Vector3.new(len,height,depth),Vector3.new(at+len/2,y,z),mat,col,collide,transparency)
+        at+=len
+    end
+end
+
 -- Beleuchtung und Atmosphaere fuer ein helles, modernes Stadtbild.
 Lighting.Technology=Enum.Technology.Future
 Lighting.ClockTime=15.1
@@ -126,33 +145,35 @@ sun.Intensity=0.035
 sun.Spread=0.75
 sun.Parent=Lighting
 
--- Stadtgrund: eine einzige glatte Flaeche, keine Kachel- oder Rastertextur.
-part(map,"Stadtgrund",Vector3.new(6200,8,6200),Vector3.new(0,-4.2,0),Enum.Material.SmoothPlastic,C.ground,true)
-part(map,"Gruenflaeche_Rand",Vector3.new(6000,0.15,6000),Vector3.new(0,0.02,0),Enum.Material.SmoothPlastic,C.ground,false)
+-- Stadtgrund: gleichfarbige, nahtlos aneinanderliegende Flaechen ohne Rastertextur.
+for _,gx in ipairs({-3072,-1024,1024,3072}) do
+    for _,gz in ipairs({-3072,-1024,1024,3072}) do
+        part(map,"Stadtgrund_Flaeche",Vector3.new(2048,8,2048),Vector3.new(gx,-4.2,gz),Enum.Material.SmoothPlastic,C.ground,true)
+        part(map,"Gruenflaeche_Rand",Vector3.new(2048,0.15,2048),Vector3.new(gx,0.02,gz),Enum.Material.SmoothPlastic,C.ground,false)
+    end
+end
 
 -- Fluesse und Ufer: Neckar im Norden, Rhein am westlichen Kartenrand.
-part(map,"Neckar_Wasser",Vector3.new(5650,4,250),Vector3.new(0,0.1,-2710),Enum.Material.Glass,C.water,false,0.12)
-part(map,"Neckar_Suedufer",Vector3.new(5650,1.1,22),Vector3.new(0,0.55,-2572),Enum.Material.Concrete,rgb(153,151,137))
-part(map,"Neckar_Nordufer",Vector3.new(5650,1.1,22),Vector3.new(0,0.55,-2848),Enum.Material.Concrete,rgb(153,151,137))
-part(map,"Rhein_Wasser",Vector3.new(250,4,5650),Vector3.new(-2710,0.08,0),Enum.Material.Glass,C.water,false,0.12)
-part(map,"Rhein_Ostufer",Vector3.new(22,1.1,5650),Vector3.new(-2572,0.55,0),Enum.Material.Concrete,rgb(153,151,137))
-part(map,"Rhein_Westufer",Vector3.new(22,1.1,5650),Vector3.new(-2848,0.55,0),Enum.Material.Concrete,rgb(153,151,137))
+partAlongX(map,"Neckar_Wasser",-2825,2825,4,250,0.1,-2710,Enum.Material.Glass,C.water,false,0.12)
+partAlongX(map,"Neckar_Suedufer",-2825,2825,1.1,22,0.55,-2572,Enum.Material.Concrete,rgb(153,151,137))
+partAlongX(map,"Neckar_Nordufer",-2825,2825,1.1,22,0.55,-2848,Enum.Material.Concrete,rgb(153,151,137))
+partAlongZ(map,"Rhein_Wasser",250,4,-2825,2825,-2710,0.08,Enum.Material.Glass,C.water,false,0.12)
+partAlongZ(map,"Rhein_Ostufer",22,1.1,-2825,2825,-2572,0.55,Enum.Material.Concrete,rgb(153,151,137))
+partAlongZ(map,"Rhein_Westufer",22,1.1,-2825,2825,-2848,0.55,Enum.Material.Concrete,rgb(153,151,137))
 
 -- Strassenbau: durchgehende Fahrbahnen mit Buergersteigen und Bordsteinen.
 local function roadX(x,z0,z1,width,name)
-    local len=z1-z0
-    part(map,name or "Strasse",Vector3.new(width,0.28,len),Vector3.new(x,0.17,(z0+z1)/2),Enum.Material.Asphalt,C.asphalt)
+    partAlongZ(map,name or "Strasse",width,0.28,z0,z1,x,0.17,Enum.Material.Asphalt,C.asphalt)
     for _,s in ipairs({-1,1}) do
-        part(map,"Bordstein",Vector3.new(1.3,0.32,len),Vector3.new(x+s*(width/2+0.65),0.24,(z0+z1)/2),Enum.Material.Concrete,C.curb)
-        part(map,"Gehweg",Vector3.new(8,0.22,len),Vector3.new(x+s*(width/2+5.3),0.12,(z0+z1)/2),Enum.Material.Concrete,C.pavement)
+        partAlongZ(map,"Bordstein",1.3,0.32,z0,z1,x+s*(width/2+0.65),0.24,Enum.Material.Concrete,C.curb)
+        partAlongZ(map,"Gehweg",8,0.22,z0,z1,x+s*(width/2+5.3),0.12,Enum.Material.Concrete,C.pavement)
     end
 end
 local function roadZ(z,x0,x1,width,name)
-    local len=x1-x0
-    part(map,name or "Strasse",Vector3.new(len,0.28,width),Vector3.new((x0+x1)/2,0.17,z),Enum.Material.Asphalt,C.asphalt)
+    partAlongX(map,name or "Strasse",x0,x1,0.28,width,0.17,z,Enum.Material.Asphalt,C.asphalt)
     for _,s in ipairs({-1,1}) do
-        part(map,"Bordstein",Vector3.new(len,0.32,1.3),Vector3.new((x0+x1)/2,0.24,z+s*(width/2+0.65)),Enum.Material.Concrete,C.curb)
-        part(map,"Gehweg",Vector3.new(len,0.22,8),Vector3.new((x0+x1)/2,0.12,z+s*(width/2+5.3)),Enum.Material.Concrete,C.pavement)
+        partAlongX(map,"Bordstein",x0,x1,0.32,1.3,0.24,z+s*(width/2+0.65),Enum.Material.Concrete,C.curb)
+        partAlongX(map,"Gehweg",x0,x1,0.22,8,0.12,z+s*(width/2+5.3),Enum.Material.Concrete,C.pavement)
     end
 end
 
@@ -226,9 +247,9 @@ local function track(axis,center,fixed,startPos,endPos)
     local length=endPos-startPos
     local mid=(startPos+endPos)/2
     if axis=="Z" then
-        part(map,"Gleisfeld",Vector3.new(17,0.32,length),Vector3.new(center,0.23,mid),Enum.Material.Concrete,C.trackbed)
+        partAlongZ(map,"Gleisfeld",17,0.32,startPos,endPos,center,0.23,Enum.Material.Concrete,C.trackbed)
     else
-        part(map,"Gleisfeld",Vector3.new(length,0.32,17),Vector3.new(mid,0.23,fixed),Enum.Material.Concrete,C.trackbed)
+        partAlongX(map,"Gleisfeld",startPos,endPos,0.32,17,0.23,fixed,Enum.Material.Concrete,C.trackbed)
     end
     for z=startPos, endPos, 11 do
         if axis=="Z" then
