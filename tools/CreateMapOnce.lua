@@ -235,80 +235,175 @@ for _,x in ipairs({-1080,-480,120,720,1500}) do
     end
 end
 
--- Schienenprofile mit Schienenfuss, Steg und Kopf; Schwellen liegen einzeln editierbar.
-local function railBar(axis,x,z,length,sizeY,sizeX,name,col)
-    local size,cf
-    if axis=="Z" then size=Vector3.new(sizeX,sizeY,length); cf=Vector3.new(x,0.48,z)
-    else size=Vector3.new(length,sizeY,sizeX); cf=Vector3.new(x,0.48,z) end
-    part(map,name,size,cf,Enum.Material.Metal,col,false)
+-- ZWEIGLEISIGE TRAMTRASSE: zwei klar getrennte Gleise mit eigenem Schotterbett,
+-- einzelnen Schwellen und dreiteiligem Schienenprofil. Alle Elemente bleiben editierbar.
+local function rotatedPart(parent,name,size,pos,yaw,mat,col,collide)
+    return part(parent,name,size,CFrame.new(pos)*CFrame.Angles(0,yaw,0),mat,col,collide)
 end
+
 local function track(axis,center,fixed,startPos,endPos)
     local length=endPos-startPos
     local mid=(startPos+endPos)/2
-    if axis=="Z" then
-        partAlongZ(map,"Gleisfeld",17,0.32,startPos,endPos,center,0.23,Enum.Material.Concrete,C.trackbed)
-    else
-        partAlongX(map,"Gleisfeld",startPos,endPos,0.32,17,0.23,fixed,Enum.Material.Concrete,C.trackbed)
-    end
-    for z=startPos, endPos, 11 do
+    for trackIndex,trackOffset in ipairs({-2.55,2.55}) do
+        local railGroup=model((axis=="Z" and "Laengsgleis_" or "Quergleis_")..trackIndex,map)
+        local laneCenter=axis=="Z" and center+trackOffset or fixed+trackOffset
         if axis=="Z" then
-            part(map,"Betonschwelle",Vector3.new(15,0.22,1.25),Vector3.new(center,0.38,z),Enum.Material.Concrete,rgb(118,120,116))
+            partAlongZ(railGroup,"Schotterbett_Gleis_"..trackIndex,4.9,0.34,startPos,endPos,laneCenter,0.23,Enum.Material.Concrete,C.trackbed)
         else
-            part(map,"Betonschwelle",Vector3.new(1.25,0.22,15),Vector3.new(z,0.38,fixed),Enum.Material.Concrete,rgb(118,120,116))
+            partAlongX(railGroup,"Schotterbett_Gleis_"..trackIndex,startPos,endPos,0.34,4.9,0.23,laneCenter,Enum.Material.Concrete,C.trackbed)
         end
-    end
-    for _,trackOffset in ipairs({-2.55,2.55}) do
+        for pos=startPos+5,endPos-5,11 do
+            if axis=="Z" then
+                part(railGroup,"Betonschwelle",Vector3.new(4.7,0.22,1.25),Vector3.new(laneCenter,0.40,pos),Enum.Material.Concrete,rgb(119,122,119))
+            else
+                part(railGroup,"Betonschwelle",Vector3.new(1.25,0.22,4.7),Vector3.new(pos,0.40,laneCenter),Enum.Material.Concrete,rgb(119,122,119))
+            end
+        end
         for _,gauge in ipairs({-0.72,0.72}) do
-            local coord=center+trackOffset+gauge
-            local baseY=0.52
-            local function railPiece(name,offsetY,width,height,col)
-                local sz,cf
-                if axis=="Z" then sz=Vector3.new(width,height,length); cf=Vector3.new(coord,baseY+offsetY,mid)
-                else sz=Vector3.new(length,height,width); cf=Vector3.new(mid,baseY+offsetY,fixed+trackOffset+gauge-center) end
-                -- Fuer horizontale Strecken liegt die Gleismitte auf fixed, die vier Schienen sind versetzt.
-                if axis=="X" then cf=Vector3.new(mid,baseY+offsetY,fixed+trackOffset+gauge) end
+            local railCoord=laneCenter+gauge
+            local function railPiece(name,width,height,offsetY,col)
+                local base=0.52+offsetY
                 for k=0,math.ceil(length/1500)-1 do
                     local segStart=startPos+k*1500
                     local segLen=math.min(1500,endPos-segStart)
                     local segMid=segStart+segLen/2
-                    local segSize
-                    if axis=="Z" then segSize=Vector3.new(width,height,segLen); cf=Vector3.new(coord,baseY+offsetY,segMid)
-                    else segSize=Vector3.new(segLen,height,width); cf=Vector3.new(segMid,baseY+offsetY,fixed+trackOffset+gauge) end
-                    part(map,name,segSize,cf,Enum.Material.Metal,col,false)
+                    local size,pos
+                    if axis=="Z" then
+                        size=Vector3.new(width,height,segLen)
+                        pos=Vector3.new(railCoord,base,segMid)
+                    else
+                        size=Vector3.new(segLen,height,width)
+                        pos=Vector3.new(segMid,base,railCoord)
+                    end
+                    part(railGroup,name,size,pos,Enum.Material.Metal,col,false)
                 end
             end
-            railPiece("Schienenfuss",0,0.92,0.14,C.steel)
-            railPiece("Schienensteg",0.16,0.25,0.42,C.rail)
-            railPiece("Schienenkopf",0.45,0.52,0.17,rgb(205,211,214))
+            railPiece("Schienenfuss",0.92,0.14,0,C.steel)
+            railPiece("Schienensteg",0.25,0.42,0.16,C.rail)
+            railPiece("Schienenkopf",0.52,0.17,0.45,rgb(207,213,216))
         end
     end
-    -- Oberleitungsmasten, Quertraeger und Fahrdraht.
+
+    -- Aufgeraeumte Oberleitung mit Fundamenten, Masten, Quertragwerken,
+    -- Isolatoren, Tragseil, Haengern und separat gefuehrtem Fahrdraht.
     for pos=startPos+20,endPos-20,105 do
         for _,side in ipairs({-1,1}) do
-            local mx=center+side*14
-            local mz=axis=="Z" and pos or fixed+side*14
-            local px=axis=="X" and pos or mx
-            part(map,"Oberleitungsmast",Vector3.new(0.75,17,0.75),Vector3.new(px,8.5,mz),Enum.Material.Metal,C.steel)
-            part(map,"Ausleger",axis=="Z" and Vector3.new(31,0.35,0.35) or Vector3.new(0.35,0.35,31),Vector3.new(px,16.5,mz),Enum.Material.Metal,C.steel)
+            local px,pz
+            if axis=="Z" then px=center+side*14; pz=pos
+            else px=pos; pz=fixed+side*14 end
+            part(map,"Mastfundament",Vector3.new(1.7,0.65,1.7),Vector3.new(px,0.34,pz),Enum.Material.Concrete,rgb(113,116,114))
+            part(map,"Oberleitungsmast",Vector3.new(0.68,17.2,0.68),Vector3.new(px,8.95,pz),Enum.Material.Metal,C.steel)
+            part(map,"Mastkopf",Vector3.new(0.9,0.55,0.9),Vector3.new(px,17.55,pz),Enum.Material.Metal,rgb(91,104,111))
+            if axis=="Z" then
+                part(map,"Quertragwerk",Vector3.new(29,0.38,0.42),Vector3.new(center,16.85,pz),Enum.Material.Metal,C.steel)
+                part(map,"Strebenhalter",Vector3.new(0.32,0.32,0.32),Vector3.new(center+side*8,16.55,pz),Enum.Material.Metal,C.rail)
+            else
+                part(map,"Quertragwerk",Vector3.new(0.42,0.38,29),Vector3.new(px,16.85,fixed),Enum.Material.Metal,C.steel)
+                part(map,"Strebenhalter",Vector3.new(0.32,0.32,0.32),Vector3.new(px,16.55,fixed+side*8),Enum.Material.Metal,C.rail)
+            end
         end
     end
     for _,trackOffset in ipairs({-2.55,2.55}) do
-        local wireX=axis=="Z" and center+trackOffset or (startPos+endPos)/2
-        local wireZ=axis=="Z" and (startPos+endPos)/2 or fixed+trackOffset
-        local wireSize=axis=="Z" and Vector3.new(0.12,0.12,length) or Vector3.new(length,0.12,0.12)
+        local wireFixed=axis=="Z" and center+trackOffset or fixed+trackOffset
         for k=0,math.ceil(length/1500)-1 do
             local segStart=startPos+k*1500
             local segLen=math.min(1500,endPos-segStart)
             local segMid=segStart+segLen/2
-            local pos=axis=="Z" and Vector3.new(wireX,16,segMid) or Vector3.new(segMid,16,wireZ)
-            local size=axis=="Z" and Vector3.new(0.12,0.12,segLen) or Vector3.new(segLen,0.12,0.12)
-            part(map,"Fahrdraht",size,pos,Enum.Material.Metal,rgb(191,171,129),false)
+            local contactSize,contactPos,messengerSize,messengerPos
+            if axis=="Z" then
+                contactSize=Vector3.new(0.13,0.13,segLen)
+                contactPos=Vector3.new(wireFixed,15.45,segMid)
+                messengerSize=Vector3.new(0.11,0.11,segLen)
+                messengerPos=Vector3.new(wireFixed,16.65,segMid)
+            else
+                contactSize=Vector3.new(segLen,0.13,0.13)
+                contactPos=Vector3.new(segMid,15.45,wireFixed)
+                messengerSize=Vector3.new(segLen,0.11,0.11)
+                messengerPos=Vector3.new(segMid,16.65,wireFixed)
+            end
+            part(map,"Fahrdraht_Kupfer",contactSize,contactPos,Enum.Material.Metal,rgb(190,167,119),false)
+            part(map,"Tragseil",messengerSize,messengerPos,Enum.Material.Metal,rgb(151,157,158),false)
+        end
+        for drop=startPos+18,endPos-18,35 do
+            local p
+            if axis=="Z" then p=Vector3.new(wireFixed,16.05,drop)
+            else p=Vector3.new(drop,16.05,wireFixed) end
+            part(map,"Oberleitungshaenger",Vector3.new(0.075,1.0,0.075),p,Enum.Material.Metal,rgb(180,166,133),false)
         end
     end
 end
+
 track("Z",120,120,-2500,2450)
 track("X",0,120,-2200,2200)
 track("Z",1500,1500,-1800,2250)
+
+-- Ein echter, editierbarer Doppelgleis-Bogen am Abzweig bei x=1500:
+-- beide Gleise gehen weich von Ost-West in Nord-Sued ueber, statt nur ein Kreuz zu bilden.
+local curveModel=model("Doppelgleisiger_90Grad_Bogen_Abzweig",map)
+local curveCenterX,curveCenterZ=1474.55,145.45
+local function curvedLane(radius,laneName)
+    local startAngle=-math.pi/2
+    local endAngle=0
+    local segments=20
+    local delta=(endAngle-startAngle)/segments
+    -- Gebogenes Schotterbett und Schwellen folgen exakt dem Kurvenverlauf.
+    for i=0,segments-1 do
+        local a0=startAngle+i*delta
+        local a1=a0+delta
+        local am=(a0+a1)/2
+        local chord=2*radius*math.sin(delta/2)
+        local pos=Vector3.new(curveCenterX+radius*math.cos(am),0.23,curveCenterZ+radius*math.sin(am))
+        rotatedPart(curveModel,"Kurvenbett_"..laneName,Vector3.new(4.9,0.34,chord+0.7),pos,-am,Enum.Material.Concrete,C.trackbed,false)
+        if i%2==0 then
+            local tiePos=Vector3.new(curveCenterX+radius*math.cos(am),0.40,curveCenterZ+radius*math.sin(am))
+            rotatedPart(curveModel,"Kurvenschwelle_"..laneName,Vector3.new(4.7,0.22,1.15),tiePos,-am,Enum.Material.Concrete,rgb(119,122,119),false)
+        end
+    end
+    -- Je zwei Schienen pro Gleis, jeweils mit Fuss, Steg und Kopf.
+    for _,gauge in ipairs({-0.72,0.72}) do
+        local railRadius=radius+gauge
+        local profiles={
+            {name="Kurvenschienenfuss_"..laneName,width=0.92,height=0.14,y=0.52,col=C.steel},
+            {name="Kurvenschienensteg_"..laneName,width=0.25,height=0.42,y=0.68,col=C.rail},
+            {name="Kurvenschienenkopf_"..laneName,width=0.52,height=0.17,y=0.97,col=rgb(207,213,216)}
+        }
+        for _,profile in ipairs(profiles) do
+            for i=0,segments-1 do
+                local a0=startAngle+i*delta
+                local a1=a0+delta
+                local am=(a0+a1)/2
+                local chord=2*railRadius*math.sin(delta/2)
+                local pos=Vector3.new(curveCenterX+railRadius*math.cos(am),profile.y,curveCenterZ+railRadius*math.sin(am))
+                rotatedPart(curveModel,profile.name,Vector3.new(profile.width,profile.height,chord+0.12),pos,-am,Enum.Material.Metal,profile.col,false)
+            end
+        end
+    end
+    -- Gebogene Fahrleitung und Tragseil mit senkrechten Haengern.
+    for i=0,segments-1 do
+        local a0=startAngle+i*delta
+        local a1=a0+delta
+        local am=(a0+a1)/2
+        local chord=2*radius*math.sin(delta/2)
+        local pos=Vector3.new(curveCenterX+radius*math.cos(am),15.45,curveCenterZ+radius*math.sin(am))
+        rotatedPart(curveModel,"Gebogener_Fahrdraht_"..laneName,Vector3.new(0.13,0.13,chord+0.08),pos,-am,Enum.Material.Metal,rgb(190,167,119),false)
+        local messengerPos=Vector3.new(pos.X,16.65,pos.Z)
+        rotatedPart(curveModel,"Gebogenes_Tragseil_"..laneName,Vector3.new(0.11,0.11,chord+0.08),messengerPos,-am,Enum.Material.Metal,rgb(151,157,158),false)
+        if i%3==0 then
+            part(curveModel,"Kurvenfahrdraht_Haenger",Vector3.new(0.075,1.0,0.075),Vector3.new(pos.X,16.05,pos.Z),Enum.Material.Metal,rgb(180,166,133),false)
+        end
+    end
+    -- Eigener Ausleger und Mast an der Aussenseite des Bogens.
+    local middle=-math.pi/4
+    local mastRadius=radius+8.5
+    local mastX=curveCenterX+mastRadius*math.cos(middle)
+    local mastZ=curveCenterZ+mastRadius*math.sin(middle)
+    part(curveModel,"Kurvenmastfundament",Vector3.new(1.7,0.65,1.7),Vector3.new(mastX,0.34,mastZ),Enum.Material.Concrete,rgb(113,116,114))
+    part(curveModel,"Kurvenoberleitungsmast",Vector3.new(0.68,17.2,0.68),Vector3.new(mastX,8.95,mastZ),Enum.Material.Metal,C.steel)
+    rotatedPart(curveModel,"Kurvenausleger",Vector3.new(9.2,0.38,0.38),Vector3.new(curveCenterX+(radius+4.2)*math.cos(middle),16.85,curveCenterZ+(radius+4.2)*math.sin(middle)),-middle,Enum.Material.Metal,C.steel,false)
+    part(curveModel,"Kurvenisolator",Vector3.new(0.38,0.62,0.38),Vector3.new(curveCenterX+(radius+0.8)*math.cos(middle),16.45,curveCenterZ+(radius+0.8)*math.sin(middle)),Enum.Material.Glass,rgb(190,205,207),false)
+end
+curvedLane(28,"Gleis_A")
+curvedLane(22.9,"Gleis_B")
 
 -- Historische und moderne Gebaeude. Jede Fassade wird aus Studio-Parts aufgebaut.
 local facades={rgb(221,204,177),rgb(190,186,174),rgb(205,174,151),rgb(181,196,190),rgb(226,216,194),rgb(179,160,143),rgb(202,196,183)}
@@ -476,38 +571,73 @@ end
 local hbfSign=part(station,"Bahnhofsschild",Vector3.new(58,5,0.7),Vector3.new(0,29,1612),Enum.Material.SmoothPlastic,C.blue,false)
 signFace(hbfSign,"MANNHEIM HBF",Enum.NormalId.Back,C.blue)
 
--- Stadtbahn-Haltestellen mit Bahnsteig, taktiler Kante, Wartehalle und Anzeige.
-local function stopPlatform(name,x,z,axis)
-    local p=model(name)
-    local length=110
-    local width=15
-    part(p,"Bahnsteig",Vector3.new(width,0.62,length),Vector3.new(x,0.53,z),Enum.Material.Concrete,rgb(177,176,166))
-    part(p,"Bahnsteigkante",Vector3.new(0.55,0.18,length-4),Vector3.new(x-width/2+0.5,0.92,z),Enum.Material.Concrete,C.yellow)
-    for dz=-48,48,6 do
-        part(p,"Taktiler_Streifen",Vector3.new(1.1,0.08,2.4),Vector3.new(x-width/2+2,1.02,z+dz),Enum.Material.Concrete,C.yellow,false)
+-- Ausgearbeitete Doppelbahnsteige: ein Bahnsteig je Fahrtrichtung,
+-- mit taktiler Kante, Sicherheitslinie, Wartehalle, Glas, Sitzplaetzen und Anzeige.
+local function makeSidePlatform(stopParent,trackX,z,side,platformId)
+    local p=model("Bahnsteig_"..platformId,stopParent)
+    local width,length=7.6,112
+    local px=trackX+side*8.25
+    local innerEdge=px-side*(width/2)
+    part(p,"Bahnsteigplatte",Vector3.new(width,0.62,length),Vector3.new(px,0.55,z),Enum.Material.Concrete,rgb(181,180,171))
+    part(p,"Bahnsteigkante",Vector3.new(0.38,0.22,length-4),Vector3.new(innerEdge,0.96,z),Enum.Material.Concrete,C.yellow)
+    part(p,"Sicherheitslinie",Vector3.new(0.18,0.055,length-8),Vector3.new(innerEdge+side*1.05,0.91,z),Enum.Material.SmoothPlastic,C.white,false)
+    for dz=-49,49,3.5 do
+        part(p,"Taktiler_Noppenstreifen",Vector3.new(1.05,0.08,1.45),Vector3.new(innerEdge+side*0.62,1.0,z+dz),Enum.Material.Concrete,rgb(222,190,111),false)
     end
-    part(p,"Wartehalle_Dach",Vector3.new(12,0.55,28),Vector3.new(x+2,6.2,z-12),Enum.Material.Metal,C.steel)
-    for _,dx in ipairs({-3.5,7.5}) do
-        for _,dz in ipairs({-24,0}) do
-            part(p,"Wartehalle_Pfosten",Vector3.new(0.3,5.4,0.3),Vector3.new(x+dx,3.4,z+dz-12),Enum.Material.Metal,C.steel)
+    -- Wartehalle mit tragendem Stahlrahmen, Glaswaenden und beleuchtetem Dach.
+    local shelterZ=z-12
+    part(p,"Wartehalle_Dach",Vector3.new(6.7,0.48,24),Vector3.new(px,6.35,shelterZ),Enum.Material.Metal,rgb(67,78,84))
+    part(p,"Wartehalle_Dachkante",Vector3.new(6.95,0.18,24.25),Vector3.new(px,6.08,shelterZ),Enum.Material.Metal,C.steel)
+    part(p,"Wartehalle_Lichtband",Vector3.new(5.6,0.08,20),Vector3.new(px,6.0,shelterZ),Enum.Material.Neon,rgb(238,226,174),false)
+    for _,dx in ipairs({-3.05,3.05}) do
+        for _,dz in ipairs({-10.5,10.5}) do
+            part(p,"Wartehalle_Stuetzrahmen",Vector3.new(0.28,5.45,0.28),Vector3.new(px+dx,3.45,shelterZ+dz),Enum.Material.Metal,C.steel)
         end
     end
-    part(p,"Wartehalle_Glas",Vector3.new(0.15,4.8,22),Vector3.new(x-3.3,3.5,z-12),Enum.Material.Glass,C.glass,false,0.15)
-    part(p,"Sitzbank",Vector3.new(4.5,0.35,1.1),Vector3.new(x+1.0,1.55,z-14),Enum.Material.Wood,C.wood)
-    local info=part(p,"Fahrgastinformation",Vector3.new(0.35,4.5,2.5),Vector3.new(x+7.1,2.75,z+34),Enum.Material.Metal,C.steel)
-    signFace(info,"RNV\nFAHRPLAN",Enum.NormalId.Left,C.blue)
-    local display=part(p,"Abfahrtsanzeige",Vector3.new(0.35,2.6,4.5),Vector3.new(x+7.1,4.0,z+18),Enum.Material.SmoothPlastic,rgb(20,31,38))
-    signFace(display,"LINIE    ZIEL\nABFAHRT",Enum.NormalId.Left,rgb(20,31,38))
-    local pole=part(p,"Haltestellenmast",Vector3.new(0.5,6,0.5),Vector3.new(x+5.5,3.7,z+48),Enum.Material.Metal,C.steel)
-    local logo=part(p,"RNV_Schild",Vector3.new(0.35,2.6,2.2),Vector3.new(x+5.5,6.4,z+48),Enum.Material.SmoothPlastic,C.blue)
-    signFace(logo,"RNV",Enum.NormalId.Left,C.blue)
-    part(p,"Abfallbehaelter",Vector3.new(1.1,1.7,1.1),Vector3.new(x+5,1.4,z-37),Enum.Material.Metal,C.steel)
+    part(p,"Wartehalle_Glas_Rueckwand",Vector3.new(0.14,4.65,20),Vector3.new(px+side*2.85,3.55,shelterZ),Enum.Material.Glass,C.glass,false,0.18)
+    part(p,"Wartehalle_Glas_Seite_1",Vector3.new(5.7,4.55,0.14),Vector3.new(px,3.55,shelterZ-10.2),Enum.Material.Glass,C.glass,false,0.18)
+    part(p,"Wartehalle_Glas_Seite_2",Vector3.new(5.7,4.55,0.14),Vector3.new(px,3.55,shelterZ+10.2),Enum.Material.Glass,C.glass,false,0.18)
+    -- Sitzbank, Armlehnen, Abfallbehaelter und Fahrkartenautomat.
+    part(p,"Sitzbank_Sitzflaeche",Vector3.new(4.3,0.32,1.05),Vector3.new(px,1.55,shelterZ-2),Enum.Material.Wood,C.wood)
+    part(p,"Sitzbank_Rueckenlehne",Vector3.new(4.3,1.05,0.22),Vector3.new(px,2.15,shelterZ-2.45),Enum.Material.Wood,C.wood)
+    for _,dx in ipairs({-1.65,0,1.65}) do
+        part(p,"Sitzbank_Fuss",Vector3.new(0.16,0.9,0.16),Vector3.new(px+dx,1.1,shelterZ-2),Enum.Material.Metal,C.steel)
+    end
+    part(p,"Abfallbehaelter",Vector3.new(0.95,1.55,0.95),Vector3.new(px-side*2.7,1.35,z-34),Enum.Material.Metal,C.steel)
+    local ticket=part(p,"Fahrkartenautomat",Vector3.new(1.15,2.8,0.85),Vector3.new(px-side*2.55,2.05,z+33),Enum.Material.Metal,rgb(77,89,94))
+    signFace(ticket,"FAHRKARTEN",Enum.NormalId.Left,C.blue)
+    local screen=part(p,"Fahrkartenautomat_Display",Vector3.new(0.08,0.95,0.58),Vector3.new(px-side*3.14,2.55,z+33),Enum.Material.Neon,rgb(117,190,190),false)
+    -- Echt wirkende dynamische Fahrgastinformation als gut lesbares Schild.
+    local info=part(p,"Fahrgastinformation",Vector3.new(0.38,3.4,2.9),Vector3.new(px-side*2.55,3.1,z+20),Enum.Material.Metal,C.steel)
+    signFace(info,"RNV  |  FAHRPLAN",Enum.NormalId.Left,C.blue)
+    local display=part(p,"LED_Abfahrtsanzeige",Vector3.new(0.3,2.35,4.8),Vector3.new(px-side*2.55,4.0,z+7),Enum.Material.SmoothPlastic,rgb(17,29,35))
+    signFace(display,"LINIE 5   ZIEL\nABFAHRT  --:--",Enum.NormalId.Left,rgb(17,29,35))
+    -- Haltestellenmast mit RNV-Kopf und Linienfeld; keine schwebenden Ortsnamen.
+    local poleX=px-side*2.75
+    part(p,"Haltestellenmast",Vector3.new(0.34,6.4,0.34),Vector3.new(poleX,3.65,z+45),Enum.Material.Metal,C.steel)
+    local logo=part(p,"RNV_Haltestellenschild",Vector3.new(0.42,2.8,2.3),Vector3.new(poleX,7.1,z+45),Enum.Material.SmoothPlastic,C.blue)
+    signFace(logo,"RNV\nHALTESTELLE",Enum.NormalId.Left,C.blue)
+    local route=part(p,"Linienfeld",Vector3.new(0.28,1.4,2.1),Vector3.new(poleX,4.8,z+45),Enum.Material.SmoothPlastic,C.white)
+    signFace(route,"5",Enum.NormalId.Left,C.white)
+    -- Pflanzkuebel und dezente Abgrenzung an den Bahnsteigenden.
+    for _,dz in ipairs({-51,51}) do
+        part(p,"Pflanzkuebel",Vector3.new(2.0,0.85,3.0),Vector3.new(px-side*2.4,1.0,z+dz),Enum.Material.Concrete,rgb(123,119,106))
+        for i=-1,1 do
+            part(p,"Kuebelpflanze",Vector3.new(0.35,1.6,0.35),Vector3.new(px-side*2.4+i*0.45,2.0,z+dz),Enum.Material.Grass,C.green,false)
+        end
+    end
 end
-stopPlatform("Haltestelle_Innenstadt_Nord",105,-650,"Z")
-stopPlatform("Haltestelle_Paradeplatz",105,-70,"Z")
-stopPlatform("Haltestelle_Friedrichsplatz",1480,280,"Z")
-stopPlatform("Haltestelle_Hauptbahnhof",105,1190,"Z")
-stopPlatform("Haltestelle_Seckenheim",1480,1750,"Z")
+
+local function stopPlatform(name,trackX,z)
+    local stop=model(name,map)
+    makeSidePlatform(stop,trackX,z,-1,"A")
+    makeSidePlatform(stop,trackX,z,1,"B")
+end
+stopPlatform("Haltestelle_Innenstadt_Nord",120,-650)
+stopPlatform("Haltestelle_Paradeplatz",120,-70)
+stopPlatform("Haltestelle_Friedrichsplatz",1500,280)
+stopPlatform("Haltestelle_Hauptbahnhof",120,1190)
+stopPlatform("Haltestelle_Seckenheim",1500,1750)
 
 -- Seckenheim: kleinstaedtischer Ortskern, Platz, Rathaus und Kirche.
 part(map,"Seckenheim_Platz",Vector3.new(260,0.2,230),Vector3.new(1840,0.14,1930),Enum.Material.Cobblestone,rgb(160,156,144))
