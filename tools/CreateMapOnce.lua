@@ -1,9 +1,10 @@
--- RNV MANNHEIM TRAM SIMULATOR | MAP V7
+-- RNV MANNHEIM TRAM SIMULATOR | MAP V8
 -- Sauberer, modularer Neuaufbau fuer Seckenheim-inspirierte Stadtstrassen.
 -- Einmalig in Roblox Studio Command Bar ausfuehren (nicht im Play-Modus).
 -- Ersetzt ausschliesslich Workspace.RNV_Mannheim_Map und entfernt SpawnLocations.
 
 local Workspace = game:GetService("Workspace")
+local MAP_SCALE = 1.65 -- groesserer Stadtmassstab
 local Lighting = game:GetService("Lighting")
 local old = Workspace:FindFirstChild("RNV_Mannheim_Map")
 if old then old:Destroy() end
@@ -32,7 +33,7 @@ local function model(name,parent)
 end
 local function part(parent,name,size,cf,mat,col,collide)
     local p=Instance.new("Part")
-    p.Name=name; p.Size=size; p.CFrame=typeof(cf)=="CFrame" and cf or CFrame.new(cf)
+    p.Name=name; p.Size=size*MAP_SCALE; local baseCF=typeof(cf)=="CFrame" and cf or CFrame.new(cf); p.CFrame=CFrame.new(baseCF.Position*MAP_SCALE)*baseCF.Rotation
     p.Anchored=true; p.Material=mat or Enum.Material.SmoothPlastic
     p.Color=col or C.cream; p.TopSurface=Enum.SurfaceType.Smooth
     p.BottomSurface=Enum.SurfaceType.Smooth; p.CastShadow=true
@@ -62,7 +63,7 @@ Lighting.EnvironmentDiffuseScale=0.55
 Lighting.EnvironmentSpecularScale=0.35
 
 -- Eine durchgehende Grundplatte: alle Strassen, Gehwege und Bauparzellen liegen darueber.
-part(map,"Durchgehender_Untergrund",Vector3.new(2800,8,2800),Vector3.new(0,-4,0),Enum.Material.Ground,color(112,119,108),true)
+part(map,"Durchgehender_Untergrund",Vector3.new(5000,8,5000),Vector3.new(0,-4,0),Enum.Material.SmoothPlastic,color(112,119,108),true)
 
 -- Hauptstrasse: zwei Fahrbahnen, dazwischen ein klar definierter Doppelgleisbereich.
 for _,x in ipairs({-82,82}) do
@@ -93,8 +94,8 @@ for _,trackX in ipairs({-5.0,5.0}) do
         part(map,"Betonschwelle",Vector3.new(13,0.18,1.15),Vector3.new(trackX,0.32,z),Enum.Material.Concrete,color(112,113,108))
     end
     for _,offset in ipairs({-1.435,1.435}) do
-        part(map,"Stahlschiene",Vector3.new(0.42,0.32,2200),Vector3.new(trackX+offset,0.57,0),Enum.Material.Metal,C.rail)
-        part(map,"Schienenbefestigung",Vector3.new(0.95,0.12,0.65),Vector3.new(trackX+offset,0.43,0),Enum.Material.Metal,C.steel)
+        part(map,"Schienenfuss",Vector3.new(1.05,0.16,2200),Vector3.new(trackX+offset,0.43,0),Enum.Material.Metal,C.steel)\n        part(map,"Schienensteg",Vector3.new(0.28,0.42,2200),Vector3.new(trackX+offset,0.66,0),Enum.Material.Metal,C.rail)\n        part(map,"Schienenkopf",Vector3.new(0.58,0.18,2200),Vector3.new(trackX+offset,0.91,0),Enum.Material.Metal,color(195,201,204))
+        part(map,"Schienenbefestigung",Vector3.new(1.15,0.16,0.9),Vector3.new(trackX+offset,0.43,0),Enum.Material.Metal,C.steel)
     end
 end
 
@@ -102,13 +103,13 @@ end
 for z=-1020,1020,72 do
     for _,side in ipairs({-1,1}) do
         local x=side*25
-        part(map,"Oberleitungsmast",Vector3.new(0.7,18,0.7),Vector3.new(x,9,z),Enum.Material.Metal,C.steel)
-        part(map,"Quertraeger",Vector3.new(54,0.32,0.32),Vector3.new(0,17.7,z),Enum.Material.Metal,C.steel)
+        part(map,"Oberleitungsmast",Vector3.new(0.85,20,0.85),Vector3.new(x,9,z),Enum.Material.Metal,C.steel)
+        part(map,"Quertraeger",Vector3.new(62,0.4,0.4),Vector3.new(0,17.7,z),Enum.Material.Metal,C.steel)
         part(map,"Isolator",Vector3.new(0.55,0.8,0.55),Vector3.new(side*5,17.1,z),Enum.Material.Metal,C.white)
     end
 end
 for _,x in ipairs({-5,5}) do
-    part(map,"Fahrdraht",Vector3.new(0.13,0.13,2200),Vector3.new(x,17.0,0),Enum.Material.Metal,color(185,164,119),false)
+    part(map,"Fahrdraht",Vector3.new(0.18,0.18,2200),Vector3.new(x,17.0,0),Enum.Material.Metal,color(185,164,119),false)
 end
 
 -- Kreuzungen: breite Querstrassen schneiden die Hauptachse im rechten Winkel.
@@ -318,13 +319,13 @@ for _,npc in ipairs(folder:GetChildren()) do
         local direction=(tonumber(npc.Name:match("%d+$")) or 1)%2==0 and 1 or -1
         while npc.Parent do
             local start=npc:GetPivot()
-            local finish=start+Vector3.new(0,0,direction*42)
+            local finish=start+Vector3.new(0,0,direction*58)
             local value=Instance.new("CFrameValue")
             value.Value=start
             local connection=value:GetPropertyChangedSignal("Value"):Connect(function()
                 if npc.Parent then npc:PivotTo(value.Value) end
             end)
-            local tween=TweenService:Create(value,TweenInfo.new(16,Enum.EasingStyle.Linear),{Value=finish})
+            local tween=TweenService:Create(value,TweenInfo.new(22,Enum.EasingStyle.Linear),{Value=finish})
             tween:Play()
             tween.Completed:Wait()
             connection:Disconnect()
@@ -337,6 +338,6 @@ end
 ]=]
 movement.Parent=map
 
-print("[RNV MAP V7] Neuer Kartenaufbau erstellt.")
-print("[RNV MAP V7] Grosse, zusammenhaengende Stadt; einheitlicher Boden; klare Strassen; Doppelgleis; 3 vollstaendige Haltestellen; Rathaus; Quartiere; bewegte Passanten.")
+print("[RNV MAP V8] Neuer Kartenaufbau erstellt.")
+print("[RNV MAP V7] Groessere Stadt im Massstab 1.65; glatter durchgehender Boden ohne Ground-Raster; verstaerkter Gleisaufbau mit breiteren Schienenkoepfen, Schienenfuss und Befestigungen; vergroesserte Oberleitung; 3 vollstaendige Haltestellen; Rathaus; Quartiere; bewegte Passanten.")
 print("[RNV MAP V7] Alle Weltobjekte liegen unter Workspace > RNV_Mannheim_Map.")
