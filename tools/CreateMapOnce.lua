@@ -222,7 +222,7 @@ local function buildTrackSegment(a,b,lineName)
     local diff=b-a
     local totalLen=diff.Magnitude
     if totalLen<0.2 then return end
-    local sections=math.ceil(totalLen/22)
+    local sections=math.ceil(totalLen/35)
     for section=1,sections do
         local p0=a:Lerp(b,(section-1)/sections)
         local p1=a:Lerp(b,section/sections)
@@ -247,7 +247,7 @@ local function buildTrackSegment(a,b,lineName)
                     cf*CFrame.new(railX,0.86,0),Enum.Material.Metal,C.rail)
                 makePart(map,lineName.."_Schienenkopf",Vector3.new(0.5,0.16,len+0.35),
                     cf*CFrame.new(railX,1.12,0),Enum.Material.Metal,rgb(176,183,185))
-                for d=5,len-1,10 do
+                for d=5,len-1,15 do
                     makePart(map,lineName.."_Schienenbefestigung",Vector3.new(0.72,0.13,0.42),
                         cf*CFrame.new(railX,0.75,d-len/2),
                         Enum.Material.Metal,rgb(65,72,76))
@@ -481,7 +481,7 @@ local function createCityBuilding(name,groundPos,dir,streetSide,index)
         Enum.Material.Fabric,index%2==0 and rgb(171,72,57) or rgb(48,105,137))
 
     -- Regelmaessige Altbau-Fensterreihen und helle Fassadenrahmen
-    local floors=math.floor((height-16)/9)
+    local floors=math.min(math.floor((height-16)/11),4)
     for floor=1,floors do
         local y=-height/2+12+floor*8.5
         for col=-1,1 do
@@ -515,7 +515,7 @@ for zi=1,#grid-1 do
         local z1,z2=grid[zi],grid[zi+1]
         local midX=(x1+x2)/2
         local midZ=(z1+z2)/2
-        local reserved=(xi==4 and zi==1) or (xi==3 and zi==3) or (xi==1 and zi==6) or (xi==6 and zi==2)
+        local reserved=(xi==4 and zi==1) or (xi==3 and zi==3) or (xi==1 and zi==6) or (xi==6 and zi==2) or (xi==1 and zi==1) or (xi==6 and zi==6) or ((xi==1 or xi==6) and (zi==3 or zi==4))
         local curveClearance=(midX> -220 and midX<360 and midZ>170 and midZ<500)
             or (midX<220 and midX> -360 and midZ< -170 and midZ> -500)
         if not reserved and not curveClearance then
@@ -702,7 +702,9 @@ end
 for _,x in ipairs({-520,-320,320,520}) do
     for z=-560,560,160 do
         if math.abs(x)>280 then
-            createTree(Vector3.new(x,0.45,z),0.9,park)
+            makePart(park,"Baumscheibe",Vector3.new(12,0.22,12),
+                CFrame.new(x,0.11,z),Enum.Material.Ground,C.green)
+            createTree(Vector3.new(x,0.22,z),0.9,park)
         end
     end
 end
