@@ -131,10 +131,10 @@ part(map,"Stadtgrund",Vector3.new(6200,8,6200),Vector3.new(0,-4.2,0),Enum.Materi
 part(map,"Gruenflaeche_Rand",Vector3.new(6000,0.15,6000),Vector3.new(0,0.02,0),Enum.Material.SmoothPlastic,C.ground,false)
 
 -- Fluesse und Ufer: Neckar im Norden, Rhein am westlichen Kartenrand.
-part(map,"Neckar_Wasser",Vector3.new(5650,4,250),Vector3.new(0,0.1,-2710),Enum.Material.Water,C.water,false,0.12)
+part(map,"Neckar_Wasser",Vector3.new(5650,4,250),Vector3.new(0,0.1,-2710),Enum.Material.Glass,C.water,false,0.12)
 part(map,"Neckar_Suedufer",Vector3.new(5650,1.1,22),Vector3.new(0,0.55,-2572),Enum.Material.Concrete,rgb(153,151,137))
 part(map,"Neckar_Nordufer",Vector3.new(5650,1.1,22),Vector3.new(0,0.55,-2848),Enum.Material.Concrete,rgb(153,151,137))
-part(map,"Rhein_Wasser",Vector3.new(250,4,5650),Vector3.new(-2710,0.08,0),Enum.Material.Water,C.water,false,0.12)
+part(map,"Rhein_Wasser",Vector3.new(250,4,5650),Vector3.new(-2710,0.08,0),Enum.Material.Glass,C.water,false,0.12)
 part(map,"Rhein_Ostufer",Vector3.new(22,1.1,5650),Vector3.new(-2572,0.55,0),Enum.Material.Concrete,rgb(153,151,137))
 part(map,"Rhein_Westufer",Vector3.new(22,1.1,5650),Vector3.new(-2848,0.55,0),Enum.Material.Concrete,rgb(153,151,137))
 
@@ -428,7 +428,7 @@ part(map,"Friedrichsplatz_Anlage",Vector3.new(430,0.24,390),Vector3.new(1240,0.1
 part(map,"Friedrichsplatz_Weg_NS",Vector3.new(28,0.12,380),Vector3.new(1240,0.31,280),Enum.Material.Concrete,C.curb,false)
 part(map,"Friedrichsplatz_Weg_EW",Vector3.new(410,0.12,28),Vector3.new(1240,0.31,280),Enum.Material.Concrete,C.curb,false)
 cylinder(map,"Wasserturm_Brunnen",Vector3.new(3,86,86),CFrame.new(1240,1.8,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Concrete,rgb(205,204,193))
-cylinder(map,"Brunnenwasser",Vector3.new(1.2,66,66),CFrame.new(1240,3.1,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Water,rgb(77,153,177),false)
+cylinder(map,"Brunnenwasser",Vector3.new(1.2,66,66),CFrame.new(1240,3.1,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Glass,rgb(77,153,177),false)
 local tower=model("Mannheimer_Wasserturm")
 cylinder(tower,"Sockel_unten",Vector3.new(29,32,32),CFrame.new(1240,18,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Concrete,rgb(191,155,111))
 cylinder(tower,"Turmschaft",Vector3.new(47,24,24),CFrame.new(1240,53,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Sandstone,rgb(209,176,131))
