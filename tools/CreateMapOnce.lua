@@ -1,338 +1,342 @@
--- RNV MANNHEIM TRAM SIMULATOR | MAP V6
--- Neuaufbau mit einfachem Koordinatensystem, durchgehendem Untergrund
--- und klar getrennten Bauzonen. Einmalig in Studio Command Bar ausfuehren.
+-- RNV MANNHEIM TRAM SIMULATOR | MAP V7
+-- Sauberer, modularer Neuaufbau fuer Seckenheim-inspirierte Stadtstrassen.
+-- Einmalig in Roblox Studio Command Bar ausfuehren (nicht im Play-Modus).
 -- Ersetzt ausschliesslich Workspace.RNV_Mannheim_Map und entfernt SpawnLocations.
 
-local W = game:GetService("Workspace")
-local L = game:GetService("Lighting")
-local old = W:FindFirstChild("RNV_Mannheim_Map")
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local old = Workspace:FindFirstChild("RNV_Mannheim_Map")
 if old then old:Destroy() end
-for _,v in ipairs(W:GetDescendants()) do
-    if v:IsA("SpawnLocation") then v:Destroy() end
+for _, item in ipairs(Workspace:GetDescendants()) do
+    if item:IsA("SpawnLocation") then item:Destroy() end
 end
 
 local map = Instance.new("Folder")
 map.Name = "RNV_Mannheim_Map"
-map.Parent = W
+map.Parent = Workspace
 
-local function col(r,g,b) return Color3.fromRGB(r,g,b) end
+local function color(r,g,b) return Color3.fromRGB(r,g,b) end
 local C = {
-    ground=col(126,133,119), road=col(48,51,54), pavement=col(174,171,160),
-    curb=col(207,202,187), trackbed=col(74,76,74), rail=col(170,177,180),
-    steel=col(54,65,70), glass=col(105,153,170), white=col(240,238,226),
-    yellow=col(242,190,54), blue=col(0,101,153), brick=col(191,171,144),
-    cream=col(222,204,171), red=col(139,62,48), roof=col(74,67,61),
-    green=col(65,119,70), wood=col(116,82,53)
+    asphalt=color(48,51,55), pavement=color(177,174,164), curb=color(215,210,195),
+    concrete=color(145,145,137), trackbed=color(75,77,76), rail=color(177,184,187),
+    steel=color(55,65,71), glass=color(105,157,177), cream=color(225,211,185),
+    yellow=color(220,177,75), brick=color(177,117,83), roof=color(75,69,64),
+    darkroof=color(57,57,56), green=color(69,119,72), wood=color(113,79,52),
+    white=color(242,239,226), blue=color(0,91,139), skin=color(207,165,129)
 }
-local function part(parent,name,size,pos,material,color,collide)
+local function folder(name,parent)
+    local f=Instance.new("Folder"); f.Name=name; f.Parent=parent or map; return f
+end
+local function model(name,parent)
+    local m=Instance.new("Model"); m.Name=name; m.Parent=parent or map; return m
+end
+local function part(parent,name,size,cf,mat,col,collide)
     local p=Instance.new("Part")
-    p.Name=name
-    p.Size=size
-    p.Position=pos
-    p.Anchored=true
-    p.Material=material or Enum.Material.SmoothPlastic
-    p.Color=color or C.cream
-    p.TopSurface=Enum.SurfaceType.Smooth
-    p.BottomSurface=Enum.SurfaceType.Smooth
-    p.CastShadow=true
+    p.Name=name; p.Size=size; p.CFrame=typeof(cf)=="CFrame" and cf or CFrame.new(cf)
+    p.Anchored=true; p.Material=mat or Enum.Material.SmoothPlastic
+    p.Color=col or C.cream; p.TopSurface=Enum.SurfaceType.Smooth
+    p.BottomSurface=Enum.SurfaceType.Smooth; p.CastShadow=true
     p.CanTouch=false
     if collide~=nil then p.CanCollide=collide end
     p.Parent=parent or map
     return p
 end
-local function model(name,parent)
-    local m=Instance.new("Model")
-    m.Name=name
-    m.Parent=parent or map
-    return m
-end
-local function textSign(p,txt,face,bg)
+local function signFace(p,text,face,bg)
     local gui=Instance.new("SurfaceGui")
     gui.Face=face or Enum.NormalId.Front
     gui.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud
-    gui.PixelsPerStud=35
-    gui.LightInfluence=0
-    gui.Parent=p
-    local t=Instance.new("TextLabel")
-    t.Size=UDim2.fromScale(1,1)
-    t.BackgroundColor3=bg or C.blue
-    t.BorderSizePixel=0
-    t.Text=txt
-    t.TextColor3=C.white
-    t.TextScaled=true
-    t.Font=Enum.Font.GothamBold
-    t.Parent=gui
+    gui.PixelsPerStud=32; gui.LightInfluence=0; gui.Parent=p
+    local label=Instance.new("TextLabel")
+    label.Size=UDim2.fromScale(1,1); label.BackgroundColor3=bg or C.blue
+    label.BorderSizePixel=0; label.Text=text; label.TextColor3=C.white
+    label.TextScaled=true; label.Font=Enum.Font.GothamBold; label.Parent=gui
 end
 
--- Einheitliche Beleuchtung und eine einzige ebene Grundflaeche.
-L.ClockTime=14.5
-L.Brightness=2.2
-L.GlobalShadows=true
-L.Ambient=col(130,133,137)
-L.OutdoorAmbient=col(166,168,170)
-L.EnvironmentDiffuseScale=0.5
-L.EnvironmentSpecularScale=0.35
-local sky=L:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere",L)
-sky.Density=0.16
-sky.Haze=0.7
-sky.Color=col(210,222,235)
-sky.Decay=col(120,135,150)
-part(map,"Einheitlicher_Stadtboden",Vector3.new(2400,8,2400),Vector3.new(0,-4,0),Enum.Material.Ground,C.ground)
+-- Beleuchtung: bewusst klare Tageslichtstimmung ohne unnoetige Effekte.
+Lighting.ClockTime=14
+Lighting.Brightness=2
+Lighting.GlobalShadows=true
+Lighting.Ambient=color(125,129,134)
+Lighting.OutdoorAmbient=color(165,169,174)
+Lighting.EnvironmentDiffuseScale=0.55
+Lighting.EnvironmentSpecularScale=0.35
 
--- Hauptstrasse liegt auf Z=0; Strassen und Gehwege sind nicht uebereinander geschichtet.
-part(map,"Hauptstrasse",Vector3.new(240,0.35,1800),Vector3.new(0,0.18,0),Enum.Material.Asphalt,C.road)
-for _,x in ipairs({-126,126}) do
-    part(map,"Bordstein",Vector3.new(1.2,0.35,1800),Vector3.new(x,0.35,0),Enum.Material.Concrete,C.curb)
-    part(map,"Gehweg",Vector3.new(34,0.3,1800),Vector3.new(x+(x<0 and -17 or 17),0.18,0),Enum.Material.Concrete,C.pavement)
+-- Eine durchgehende Grundplatte: alle Strassen, Gehwege und Bauparzellen liegen darueber.
+part(map,"Durchgehender_Untergrund",Vector3.new(2800,8,2800),Vector3.new(0,-4,0),Enum.Material.Ground,color(112,119,108),true)
+
+-- Hauptstrasse: zwei Fahrbahnen, dazwischen ein klar definierter Doppelgleisbereich.
+for _,x in ipairs({-82,82}) do
+    part(map,"Hauptfahrbahn",Vector3.new(128,0.22,2200),Vector3.new(x,0.11,0),Enum.Material.Asphalt,C.asphalt)
 end
-for z=-850,850,32 do
-    part(map,"Fahrbahn_Mittellinie",Vector3.new(0.35,0.025,13),Vector3.new(0,0.37,z),Enum.Material.SmoothPlastic,C.white,false)
-end
-for _,x in ipairs({-75,75}) do
-    part(map,"Fahrstreifenlinie",Vector3.new(0.22,0.025,1750),Vector3.new(x,0.37,0),Enum.Material.SmoothPlastic,C.white,false)
+part(map,"Gleisunterbau",Vector3.new(34,0.24,2200),Vector3.new(0,0.12,0),Enum.Material.Concrete,C.trackbed)
+
+-- Bordsteine und breite Gehwege, exakt ausserhalb der Fahrbahnen.
+for _,side in ipairs({-1,1}) do
+    local x=side*153
+    part(map,"Bordstein",Vector3.new(1.5,0.3,2200),Vector3.new(x,0.22,0),Enum.Material.Concrete,C.curb)
+    part(map,"Gehweg",Vector3.new(28,0.22,2200),Vector3.new(side*169,0.11,0),Enum.Material.Concrete,C.pavement)
+    part(map,"Randstreifen",Vector3.new(2,0.12,2200),Vector3.new(side*185,0.06,0),Enum.Material.Concrete,C.curb)
 end
 
--- Strassenbahntrasse mit zwei getrennten Gleisen.
-part(map,"Gleisbereich",Vector3.new(34,0.22,1800),Vector3.new(0,0.39,0),Enum.Material.Asphalt,C.trackbed)
-for _,trackX in ipairs({-5,5}) do
-    for z=-880,880,5 do
-        part(map,"Schwelle",Vector3.new(13,0.16,1.1),Vector3.new(trackX,0.59,z),Enum.Material.Concrete,col(104,105,101))
+-- Fahrbahnmarkierungen mit Abstand zu Kreuzungen und Haltestellen.
+for z=-1040,1040,34 do
+    part(map,"Mittellinienmarkierung",Vector3.new(0.35,0.035,13),Vector3.new(-82,0.245,z),Enum.Material.SmoothPlastic,C.white,false)
+    part(map,"Mittellinienmarkierung",Vector3.new(0.35,0.035,13),Vector3.new(82,0.245,z),Enum.Material.SmoothPlastic,C.white,false)
+end
+for _,x in ipairs({-142,-22,22,142}) do
+    part(map,"Fahrbahnbegrenzung",Vector3.new(0.22,0.025,2150),Vector3.new(x,0.24,0),Enum.Material.SmoothPlastic,color(220,216,203),false)
+end
+
+-- Doppelgleis. Schienen und Schwellen sind als getrennte, editierbare Teile gebaut.
+for _,trackX in ipairs({-5.0,5.0}) do
+    for z=-1070,1070,5 do
+        part(map,"Betonschwelle",Vector3.new(13,0.18,1.15),Vector3.new(trackX,0.32,z),Enum.Material.Concrete,color(112,113,108))
     end
-    for _,dx in ipairs({-1.25,1.25}) do
-        part(map,"Schienenprofil",Vector3.new(0.42,0.28,1800),Vector3.new(trackX+dx,0.77,0),Enum.Material.Metal,C.rail)
+    for _,offset in ipairs({-1.435,1.435}) do
+        part(map,"Stahlschiene",Vector3.new(0.42,0.32,2200),Vector3.new(trackX+offset,0.57,0),Enum.Material.Metal,C.rail)
+        part(map,"Schienenbefestigung",Vector3.new(0.95,0.12,0.65),Vector3.new(trackX+offset,0.43,0),Enum.Material.Metal,C.steel)
     end
 end
--- Oberleitungsmasten und Fahrdraht.
-for z=-840,840,70 do
-    local x=(math.floor((z+840)/70)%2==0) and -23 or 23
-    part(map,"Fahrleitungsmast",Vector3.new(0.65,18,0.65),Vector3.new(x,9,z),Enum.Material.Metal,C.steel)
-    part(map,"Ausleger",Vector3.new(48,0.3,0.3),Vector3.new(0,17.5,z),Enum.Material.Metal,C.steel)
+
+-- Oberleitung: regelmaessige Masten, Ausleger und zwei Fahrdraehte.
+for z=-1020,1020,72 do
+    for _,side in ipairs({-1,1}) do
+        local x=side*25
+        part(map,"Oberleitungsmast",Vector3.new(0.7,18,0.7),Vector3.new(x,9,z),Enum.Material.Metal,C.steel)
+        part(map,"Quertraeger",Vector3.new(54,0.32,0.32),Vector3.new(0,17.7,z),Enum.Material.Metal,C.steel)
+        part(map,"Isolator",Vector3.new(0.55,0.8,0.55),Vector3.new(side*5,17.1,z),Enum.Material.Metal,C.white)
+    end
 end
 for _,x in ipairs({-5,5}) do
-    part(map,"Fahrdraht",Vector3.new(0.12,0.12,1800),Vector3.new(x,17.1,0),Enum.Material.Metal,col(190,166,112),false)
+    part(map,"Fahrdraht",Vector3.new(0.13,0.13,2200),Vector3.new(x,17.0,0),Enum.Material.Metal,color(185,164,119),false)
 end
 
--- Querstrassen als klare, rechtwinklige Anschluesse.
-for _,z in ipairs({-720,-360,360,720}) do
-    part(map,"Querstrasse",Vector3.new(900,0.34,72),Vector3.new(0,0.19,z),Enum.Material.Asphalt,C.road)
-    for _,x in ipairs({-450,450}) do
-        part(map,"Querstrassen_Gehweg",Vector3.new(900,0.28,13),Vector3.new(0,0.18,z+x*0),Enum.Material.Concrete,C.pavement)
+-- Kreuzungen: breite Querstrassen schneiden die Hauptachse im rechten Winkel.
+local crossZ={-900,-600,-300,300,600,900}
+for _,z in ipairs(crossZ) do
+    part(map,"Querstrasse",Vector3.new(1900,0.24,58),Vector3.new(0,0.12,z),Enum.Material.Asphalt,C.asphalt)
+    for _,x in ipairs({-151,151}) do
+        part(map,"Querstrassenbordstein",Vector3.new(1.5,0.3,58),Vector3.new(x,0.22,z),Enum.Material.Concrete,C.curb)
+    end
+    for lane=-3,3 do
+        part(map,"Fussgaengerueberweg",Vector3.new(4,0.035,0.7),Vector3.new(lane*5,0.255,z-35),Enum.Material.SmoothPlastic,C.white,false)
+        part(map,"Fussgaengerueberweg",Vector3.new(4,0.035,0.7),Vector3.new(lane*5,0.255,z+35),Enum.Material.SmoothPlastic,C.white,false)
     end
 end
 
--- Vollstaendige Haltestellen: je zwei Bahnsteige pro Haltepunkt, ohne Namens-Billboards.
+-- Haltestellen mit zwei Seitenbahnsteigen, Glaswartehalle, Sitzbank,
+-- Fahrplanauskunft, digitaler Anzeige und eigenem Haltestellenmast.
 local function shelter(parent,cx,cz)
-    local s=model("Wartehalle",parent)
-    part(s,"Bodenplatte",Vector3.new(12,0.35,25),Vector3.new(cx,0.72,cz),Enum.Material.Concrete,col(155,157,151))
-    part(s,"Dach",Vector3.new(13,0.55,26),Vector3.new(cx,7.0,cz),Enum.Material.Metal,C.steel)
-    for _,dx in ipairs({-5.8,5.8}) do
+    local s=model("Glaswartehalle",parent)
+    part(s,"Boden",Vector3.new(13,0.32,25),Vector3.new(cx,0.56,cz),Enum.Material.Concrete,color(155,157,151))
+    part(s,"Dach",Vector3.new(14,0.5,26),Vector3.new(cx,6.5,cz),Enum.Material.Metal,C.steel)
+    for _,dx in ipairs({-6.2,6.2}) do
         for _,dz in ipairs({-11.5,11.5}) do
-            part(s,"Dachstuetze",Vector3.new(0.35,6.2,0.35),Vector3.new(cx+dx,3.8,cz+dz),Enum.Material.Metal,C.steel)
+            part(s,"Stuetzpfosten",Vector3.new(0.32,5.8,0.32),Vector3.new(cx+dx,3.55,cz+dz),Enum.Material.Metal,C.steel)
         end
     end
-    part(s,"Rueckwand_Glas",Vector3.new(0.18,5.6,22),Vector3.new(cx-5.7,3.8,cz),Enum.Material.Glass,C.glass,false)
-    part(s,"Seitenwand_Glas",Vector3.new(11.2,5.6,0.18),Vector3.new(cx,3.8,cz+11.3),Enum.Material.Glass,C.glass,false)
-    part(s,"Sitzbank",Vector3.new(3.8,0.3,1.0),Vector3.new(cx+1.0,1.8,cz-2),Enum.Material.Wood,C.wood)
-    part(s,"Banklehne",Vector3.new(0.25,1.4,3.8),Vector3.new(cx-0.8,2.45,cz-2),Enum.Material.Wood,C.wood)
-    local info=part(s,"Fahrplanauskunft",Vector3.new(0.25,4.5,2.5),Vector3.new(cx+7.0,2.8,cz-10),Enum.Material.Metal,C.steel)
-    textSign(info,"RNV\nFAHRPLAN\nLINIEN",Enum.NormalId.Left,C.blue)
-    local screen=part(s,"Dynamische_Anzeige",Vector3.new(0.25,2.5,4.0),Vector3.new(cx+7.0,4.0,cz+8),Enum.Material.SmoothPlastic,col(26,39,46))
-    textSign(screen,"LINIE 5   40\nABFAHRT",Enum.NormalId.Left,col(26,39,46))
+    part(s,"Rueckwand_Glas",Vector3.new(0.16,5.2,22),Vector3.new(cx-6.1,3.5,cz),Enum.Material.Glass,C.glass,false)
+    part(s,"Seitenwand_Glas",Vector3.new(12,5.2,0.16),Vector3.new(cx,3.5,cz+11.4),Enum.Material.Glass,C.glass,false)
+    part(s,"Sitzflaeche",Vector3.new(4.5,0.32,1.1),Vector3.new(cx+1.0,1.7,cz-2),Enum.Material.Wood,C.wood)
+    part(s,"Rueckenlehne",Vector3.new(0.25,1.3,4.5),Vector3.new(cx-1.0,2.35,cz-2),Enum.Material.Wood,C.wood)
+    local info=part(s,"Fahrplanauskunft",Vector3.new(0.25,4.4,2.7),Vector3.new(cx+7.3,2.7,cz-9),Enum.Material.Metal,C.steel)
+    signFace(info,"RNV\nFAHRPLAN",Enum.NormalId.Left,C.blue)
+    local display=part(s,"Abfahrtsanzeige",Vector3.new(0.25,2.5,4.5),Vector3.new(cx+7.3,4.0,cz+8),Enum.Material.SmoothPlastic,color(24,36,43))
+    signFace(display,"LINIE     ZIEL\nABFAHRT",Enum.NormalId.Left,color(24,36,43))
+    part(s,"Papierkorb",Vector3.new(1.0,1.6,1.0),Vector3.new(cx+4.5,1.35,cz+9),Enum.Material.Metal,color(65,76,74))
 end
-local function platform(label,z)
-    for _,x in ipairs({-18,18}) do
-        local m=model("Haltestellensteig_"..label.."_"..(x<0 and "A" or "B"))
-        part(m,"Bahnsteig",Vector3.new(15,0.65,112),Vector3.new(x,0.65,z),Enum.Material.Concrete,col(174,173,165))
-        part(m,"Bahnsteigkante",Vector3.new(0.35,0.12,108),Vector3.new(x+(x<0 and 7.1 or -7.1),1.04,z),Enum.Material.Concrete,C.yellow)
-        part(m,"Taktiles_Leitsystem",Vector3.new(1.0,0.08,104),Vector3.new(x+(x<0 and 6.2 or -6.2),1.08,z),Enum.Material.SmoothPlastic,C.yellow,false)
-        shelter(m,x,z-10)
-        local pole=part(m,"Haltestellenmast",Vector3.new(0.4,5.5,0.4),Vector3.new(x+(x<0 and 6 or -6),3.2,z+43),Enum.Material.Metal,C.steel)
-        local sign=part(m,"RNV_Haltestellenschild",Vector3.new(0.25,2.6,2.0),pole.Position+Vector3.new(0,3.1,0),Enum.Material.SmoothPlastic,C.blue)
-        textSign(sign,"RNV",Enum.NormalId.Front,C.blue)
-        local marker=part(m,"Steigkennung",Vector3.new(0.2,1.2,1.4),pole.Position+Vector3.new(0,1.5,0),Enum.Material.SmoothPlastic,C.blue)
-        textSign(marker,"STEIG "..(x<0 and "A" or "B"),Enum.NormalId.Front,C.blue)
-        part(m,"Muelleimer",Vector3.new(1.1,1.8,1.1),Vector3.new(x,1.25,z+28),Enum.Material.Metal,col(67,79,77))
+local function platform(index,z)
+    for _,side in ipairs({-1,1}) do
+        local cx=side*25
+        local p=model("Bahnsteig_"..index.."_"..(side<0 and "West" or "Ost"))
+        part(p,"Bahnsteigplatte",Vector3.new(18,0.62,118),Vector3.new(cx,0.55,z),Enum.Material.Concrete,color(176,174,165))
+        part(p,"Bahnsteigkante",Vector3.new(0.45,0.14,114),Vector3.new(cx-side*8.75,0.93,z),Enum.Material.Concrete,C.yellow)
+        for dz=-54,54,6 do
+            part(p,"Taktiler_Leitstreifen",Vector3.new(1.25,0.08,2.4),Vector3.new(cx-side*7.55,1.0,z+dz),Enum.Material.Concrete,C.yellow,false)
+        end
+        shelter(p,cx+side*1.0,z-12)
+        local pole=part(p,"Haltestellenmast",Vector3.new(0.45,5.6,0.45),Vector3.new(cx+side*7.0,3.4,z+47),Enum.Material.Metal,C.steel)
+        local sign=part(p,"Haltestellenschild",Vector3.new(0.25,2.8,2.3),pole.Position+Vector3.new(0,3.0,0),Enum.Material.SmoothPlastic,C.blue)
+        signFace(sign,"RNV",Enum.NormalId.Front,C.blue)
+        part(p,"Sitzbank",Vector3.new(4,0.35,1.1),Vector3.new(cx,z*0+1.55,z+34),Enum.Material.Wood,C.wood)
+        part(p,"Muelleimer",Vector3.new(1.0,1.6,1.0),Vector3.new(cx+side*4,1.35,z+37),Enum.Material.Metal,C.steel)
     end
 end
 platform("01",-600)
 platform("02",0)
 platform("03",600)
 
--- Rathausplatz als eigene, ebene Pflasterflaeche neben der Hauptstrasse.
-part(map,"Rathausplatz",Vector3.new(250,0.22,230),Vector3.new(280,0.31,0),Enum.Material.Cobblestone,col(151,148,137))
--- Rathausbau mit klaren Wandflaechen, Fenstern, Dach und Eingangsfront.
-local town=model("Rathaus")
-local tx,tz=330,-5
-part(town,"Hauptkoerper",Vector3.new(100,38,150),Vector3.new(tx,19,tz),Enum.Material.Concrete,C.cream)
-part(town,"Sockel",Vector3.new(104,2,154),Vector3.new(tx,1,tz),Enum.Material.Concrete,col(165,151,129))
-part(town,"Dachgeschoss",Vector3.new(104,2,154),Vector3.new(tx,38,tz),Enum.Material.Concrete,C.brick)
-part(town,"Dach_Vorderseite",Vector3.new(106,2,78),Vector3.new(tx,42,tz-37),Enum.Material.Slate,C.red)
-part(town,"Dach_Rueckseite",Vector3.new(106,2,78),Vector3.new(tx,42,tz+37),Enum.Material.Slate,C.red)
-part(town,"Dachfirst",Vector3.new(2,2,154),Vector3.new(tx,44,tz),Enum.Material.Wood,C.roof)
+-- Rathausplatz und Rathaus: auf separater, ebener Parzelle neben der Hauptachse.
+part(map,"Rathausplatz_Pflaster",Vector3.new(230,0.18,220),Vector3.new(330,0.10,80),Enum.Material.Cobblestone,color(157,153,142))
+local town=model("Historisches_Rathaus")
+local tx,tz=355,65
+part(town,"Hauptgebaeude",Vector3.new(92,34,104),Vector3.new(tx,17,tz),Enum.Material.Concrete,color(225,205,166))
+part(town,"Sockel",Vector3.new(96,1.6,108),Vector3.new(tx,0.8,tz),Enum.Material.Concrete,color(151,137,119))
+part(town,"Dach_vorne",Vector3.new(98,1.1,54),CFrame.new(tx,35,tz-26)*CFrame.Angles(math.rad(-18),0,0),Enum.Material.Slate,C.brick)
+part(town,"Dach_hinten",Vector3.new(98,1.1,54),CFrame.new(tx,35,tz+26)*CFrame.Angles(math.rad(18),0,0),Enum.Material.Slate,C.brick)
+part(town,"Dachfirst",Vector3.new(2,2,108),Vector3.new(tx,43,tz),Enum.Material.Wood,C.roof)
+-- Symmetrische Fensterreihen auf der Platzfassade.
 for floor=1,3 do
-    local y=7+(floor-1)*10
-    for x=tx-38,tx+39,19 do
-        local win=part(town,"Fenster",Vector3.new(0.25,6,8),Vector3.new(x,y,tz-75.2),Enum.Material.Glass,C.glass,false)
-        part(town,"Fensterbank",Vector3.new(1.0,0.35,9),Vector3.new(x,y-3.2,tz-75.5),Enum.Material.Concrete,C.white)
+    local y=5+floor*8
+    for x=tx-34,tx+34,17 do
+        part(town,"Fenster",Vector3.new(6,5,0.22),Vector3.new(x,y,tz-52.2),Enum.Material.Glass,C.glass,false)
+        part(town,"Fenstersturz",Vector3.new(7,0.3,0.45),Vector3.new(x,y+2.7,tz-52.35),Enum.Material.Concrete,C.white,false)
+        part(town,"Fensterbank",Vector3.new(7,0.3,0.45),Vector3.new(x,y-2.7,tz-52.35),Enum.Material.Concrete,C.white,false)
     end
 end
-for x=tx-36,tx+36,18 do
-    part(town,"Arkadenpfeiler",Vector3.new(2,12,2),Vector3.new(x,6,tz-77),Enum.Material.Concrete,C.white)
+for x=tx-30,tx+30,15 do
+    part(town,"Eingangspfeiler",Vector3.new(1.8,10,1.8),Vector3.new(x,5,tz-54),Enum.Material.Concrete,C.white)
 end
-part(town,"Eingangsportal",Vector3.new(16,11,0.6),Vector3.new(tx,5.5,tz-76),Enum.Material.Wood,C.wood)
-part(town,"Turm",Vector3.new(24,25,24),Vector3.new(tx,55,tz),Enum.Material.Concrete,C.brick)
-part(town,"Turmdach",Vector3.new(29,12,29),Vector3.new(tx,73,tz),Enum.Material.Slate,C.roof)
-part(town,"Turmspitze",Vector3.new(1,12,1),Vector3.new(tx,84,tz),Enum.Material.Metal,C.steel)
-for _,x in ipairs({tx-12.2,tx+12.2}) do
-    local clock=part(town,"Uhr",Vector3.new(0.25,6,6),Vector3.new(x,55,tz-12.3),Enum.Material.SmoothPlastic,col(243,235,210))
-    textSign(clock,"12",Enum.NormalId.Front,col(243,235,210))
+part(town,"Haupteingang",Vector3.new(10,8,0.5),Vector3.new(tx,4,tz-53),Enum.Material.Wood,C.wood)
+part(town,"Turm",Vector3.new(22,25,22),Vector3.new(tx,47,tz),Enum.Material.Concrete,color(216,194,157))
+part(town,"Turmdach",Vector3.new(28,11,28),Vector3.new(tx,65,tz),Enum.Material.Slate,C.roof)
+part(town,"Turmspitze",Vector3.new(0.8,8,0.8),Vector3.new(tx,74,tz),Enum.Material.Metal,C.steel)
+for _,x in ipairs({tx-11.2,tx+11.2}) do
+    local clock=part(town,"Uhr",Vector3.new(0.2,5.5,5.5),Vector3.new(x,47,tz-11.2),Enum.Material.SmoothPlastic,C.white)
+    signFace(clock,"12",Enum.NormalId.Front,C.white)
 end
 
--- Stadtquartiere: Gebaeude stehen auf freien Parzellen, mit Luecken und Abstand.
-local facade={col(215,197,169),col(192,183,168),col(205,177,158),col(183,194,190),col(224,211,187),col(190,171,151)}
-local shop={"CAFÉ","BÄCKEREI","APOTHEKE","BLUMEN","KIOSK","MARKT"}
-local rng=Random.new(2841)
-local function house(name,x,z,index)
-    local w=rng:NextInteger(34,48)
-    local d=rng:NextInteger(36,50)
-    local h=rng:NextInteger(24,38)
-    local m=model(name)
-    local fc=facade[(index-1)%#facade+1]
-    part(m,"Gebaeude",Vector3.new(w,h,d),Vector3.new(x,h/2,z),Enum.Material.Concrete,fc)
-    part(m,"Sockel",Vector3.new(w+1,1.5,d+1),Vector3.new(x,0.75,z),Enum.Material.Concrete,col(143,133,116))
-    -- Strassenfront zeigt nach vorne (negative Z).
-    for floor=1,math.floor((h-5)/9) do
-        local y=4+floor*8
+-- Geschaefts- und Wohnhaeuser in getrennten Bauparzellen.
+-- Jede Parzelle bekommt Abstand zu Strasse, Kreuzung und Nachbargebaeude.
+local facades={color(218,199,171),color(191,184,170),color(207,176,153),color(184,196,190),color(226,214,190),color(183,164,146)}
+local roofColors={C.roof,C.brick,color(89,77,68)}
+local shops={"CAFÉ","BÄCKEREI","BLUMEN","KIOSK","MARKT","APOTHEKE"}
+local rng=Random.new(711)
+local function house(index,x,z,front)
+    local m=model("Stadthaus_"..index)
+    local w=rng:NextInteger(34,42)
+    local d=rng:NextInteger(34,42)
+    local h=rng:NextInteger(25,34)
+    local fc=facades[(index-1)%#facades+1]
+    part(m,"Fassade",Vector3.new(w,h,d),Vector3.new(x,h/2,z),Enum.Material.Concrete,fc)
+    part(m,"Sockel",Vector3.new(w+1,1.2,d+1),Vector3.new(x,0.6,z),Enum.Material.Concrete,color(144,135,119))
+    part(m,"Dach",Vector3.new(w+3,1.3,d+3),Vector3.new(x,h+0.65,z),Enum.Material.Slate,roofColors[(index-1)%#roofColors+1])
+    -- Frontfassade zeigt zur naechsten Strasse.
+    local faceZ=z+front*(d/2+0.14)
+    for floor=1,math.floor((h-5)/8) do
+        local y=4+floor*7
         for colIndex=-1,1 do
-            local wx=x+colIndex*(w/3)
-            part(m,"Fensterglas",Vector3.new(6,4.8,0.22),Vector3.new(wx,y,z-d/2-0.13),Enum.Material.Glass,C.glass,false)
-            part(m,"Fenstersturz",Vector3.new(7,0.25,0.35),Vector3.new(wx,y+2.5,z-d/2-0.25),Enum.Material.Concrete,C.white,false)
-            part(m,"Fensterbank",Vector3.new(7,0.35,0.45),Vector3.new(wx,y-2.5,z-d/2-0.3),Enum.Material.Concrete,C.white,false)
+            local wx=x+colIndex*(w/3.5)
+            part(m,"Fenster",Vector3.new(5.2,4.6,0.2),Vector3.new(wx,y,faceZ),Enum.Material.Glass,C.glass,false)
+            part(m,"Fensterbank",Vector3.new(6,0.28,0.4),Vector3.new(wx,y-2.45,faceZ+front*0.1),Enum.Material.Concrete,C.white,false)
         end
     end
     for colIndex=-1,1 do
-        local wx=x+colIndex*(w/3)
-        part(m,"Schaufenster",Vector3.new(7,5.5,0.25),Vector3.new(wx,3,z-d/2-0.16),Enum.Material.Glass,C.glass,false)
+        local wx=x+colIndex*(w/3.5)
+        part(m,"Schaufenster",Vector3.new(6,5.2,0.2),Vector3.new(wx,3,faceZ+front*0.02),Enum.Material.Glass,C.glass,false)
     end
-    part(m,"Ladenschild",Vector3.new(14,2.2,0.5),Vector3.new(x,6.8,z-d/2-0.4),Enum.Material.SmoothPlastic,index%2==0 and C.blue or col(77,104,77),false)
-    local sign=m:FindFirstChild("Ladenschild")
-    textSign(sign,shop[(index-1)%#shop+1],Enum.NormalId.Front,sign.Color)
-    part(m,"Dach",Vector3.new(w+3,1.5,d+3),Vector3.new(x,h+0.6,z),Enum.Material.Slate,index%2==0 and C.red or C.roof)
+    part(m,"Ladenschild",Vector3.new(13,1.8,0.35),Vector3.new(x,6.2,faceZ+front*0.3),Enum.Material.SmoothPlastic,index%2==0 and C.blue or color(76,104,76),false)
+    -- Schrift nur an Geschaeften, keine schwebenden Orts-/Haltestellennamen.
+    local plaque=m:FindFirstChild("Ladenschild")
+    signFace(plaque,shops[(index-1)%#shops+1],front==1 and Enum.NormalId.Back or Enum.NormalId.Front,plaque.Color)
+    part(m,"Eingangstuer",Vector3.new(3.2,6,0.25),Vector3.new(x,3,faceZ+front*0.16),Enum.Material.Wood,C.wood,false)
 end
+
 local idx=0
--- Blocks around the main road, with planned empty street corridors.
-for _,z in ipairs({-820,-620,-420,-220,220,420,620,820}) do
-    for _,x in ipairs({-390,-300,-210,210,300,390}) do
+-- Vier Seitenquartiere, weit genug von der Hauptstrasse und den Querstrassen entfernt.
+for _,x in ipairs({-300,-430,-560,-690,-820,300,430,560,690,820}) do
+    for _,z in ipairs({-800,-500,-200,200,500,800}) do
         idx+=1
-        house("Altstadthaus_"..idx,x,z,idx)
-    end
-end
--- Weitere Quartiere seitlich des Zentrums, damit die Karte gross und offen wirkt.
-for _,z in ipairs({-760,-560,-360,-160,160,360,560,760}) do
-    for _,x in ipairs({-760,-650,650,760}) do
-        idx+=1
-        house("Wohnhaus_"..idx,x,z,idx)
+        local front=(z<0) and 1 or -1
+        house(idx,x,z,front)
     end
 end
 
--- Nebenstrassen in den Quartieren: erst Fahrbahn, dann Gehwege, ohne Boden-Patchwork.
-for _,x in ipairs({-500,-100,100,500}) do
-    part(map,"Quartierstrasse",Vector3.new(48,0.3,1700),Vector3.new(x,0.16,0),Enum.Material.Asphalt,C.road)
-    for _,dx in ipairs({-26,26}) do
-        part(map,"Quartier_Gehweg",Vector3.new(9,0.26,1700),Vector3.new(x+dx,0.17,0),Enum.Material.Concrete,C.pavement)
+-- Kleine Seitenstrassen und ruhige Wohnstrassen als klares Raster.
+for _,x in ipairs({-235,-365,-495,-625,-755,235,365,495,625,755}) do
+    part(map,"Nebenstrasse",Vector3.new(34,0.2,2050),Vector3.new(x,0.1,0),Enum.Material.Asphalt,C.asphalt)
+    for _,side in ipairs({-1,1}) do
+        part(map,"Nebenstrassen_Gehweg",Vector3.new(7,0.18,2050),Vector3.new(x+side*20.5,0.09,0),Enum.Material.Concrete,C.pavement)
     end
 end
-for _,z in ipairs({-900,-500,500,900}) do
-    part(map,"Quartier_Querstrasse",Vector3.new(1700,0.3,46),Vector3.new(0,0.16,z),Enum.Material.Asphalt,C.road)
-end
 
--- Gruenflaechen, Baeume und Stadtmoeblierung auf den Gehwegen.
+-- Platzmoeblierung, Baeume und Strassenlaternen.
 local function tree(x,z,scale)
-    local m=model("Stadtbaum")
-    part(m,"Stamm",Vector3.new(1.6*scale,8*scale,1.6*scale),Vector3.new(x,4*scale,z),Enum.Material.Wood,C.wood,false)
-    local crown=part(m,"Krone",Vector3.new(9*scale,9*scale,9*scale),Vector3.new(x,10*scale,z),Enum.Material.Grass,C.green,false)
+    local m=model("Baum")
+    part(m,"Stamm",Vector3.new(1.4*scale,7*scale,1.4*scale),Vector3.new(x,3.5*scale,z),Enum.Material.Wood,C.wood,false)
+    local crown=part(m,"Baumkrone",Vector3.new(8*scale,8*scale,8*scale),Vector3.new(x,8*scale,z),Enum.Material.Grass,C.green,false)
     crown.Shape=Enum.PartType.Ball
 end
-for z=-850,850,100 do
-    tree(-150,z,1)
-    tree(150,z,1)
+for z=-980,980,110 do
+    tree(-190,z,1); tree(190,z,1)
 end
-for x=220,420,50 do
-    tree(x,120,1.1)
-    tree(x,-120,1.1)
+for x=250,430,45 do
+    tree(x,205,1.1); tree(x,-45,1.1)
 end
-for z=-850,850,120 do
-    for _,x in ipairs({-145,145}) do
+for z=-950,950,130 do
+    for _,x in ipairs({-190,190}) do
         local lamp=model("Strassenlaterne")
         part(lamp,"Mast",Vector3.new(0.35,9,0.35),Vector3.new(x,4.5,z),Enum.Material.Metal,C.steel)
-        part(lamp,"Leuchte",Vector3.new(2.5,0.25,0.8),Vector3.new(x,9,z),Enum.Material.Metal,col(230,222,192))
+        part(lamp,"Leuchtenkopf",Vector3.new(2.5,0.3,0.8),Vector3.new(x,9,z),Enum.Material.Metal,color(235,226,198))
     end
 end
+for _,z in ipairs({-35,35}) do
+    part(map,"Sitzbank",Vector3.new(6,0.35,1.2),Vector3.new(250,1.2,z),Enum.Material.Wood,C.wood)
+end
 
--- Geparkte Autos mit einfacher, sauberer Silhouette.
-local carColors={col(190,193,192),col(67,84,99),col(150,58,48),col(51,57,61),col(202,190,165)}
-for i,z in ipairs({-790,-690,-490,-290,290,490,690,790}) do
-    for _,x in ipairs({-103,103}) do
-        local m=model("Parkendes_Auto")
+-- Geparkte Autos in Parkbuchten ausserhalb der Gehwege.
+local carColors={color(185,190,193),color(63,82,99),color(146,60,51),color(50,57,63),color(201,187,163)}
+for i,z in ipairs({-850,-720,-470,-170,170,470,720,850}) do
+    for _,x in ipairs({-112,112}) do
+        local car=model("Geparktes_Auto")
         local cc=carColors[(i-1)%#carColors+1]
-        part(m,"Karosserie",Vector3.new(5.5,1.7,11),Vector3.new(x,1.2,z),Enum.Material.Metal,cc,false)
-        part(m,"Fenster",Vector3.new(4.5,1.5,5),Vector3.new(x,2.7,z),Enum.Material.Glass,C.glass,false)
-        for _,dx in ipairs({-2.7,2.7}) do
-            for _,dz in ipairs({-3.5,3.5}) do
-                local wheel=part(m,"Rad",Vector3.new(0.7,1.5,1.5),Vector3.new(x+dx,0.8,z+dz),Enum.Material.Rubber,col(29,30,31),false)
+        part(car,"Karosserie",Vector3.new(5.8,1.8,11.5),Vector3.new(x,1.1,z),Enum.Material.Metal,cc,false)
+        part(car,"Dach",Vector3.new(4.6,1.5,5.7),Vector3.new(x,2.65,z),Enum.Material.Glass,C.glass,false)
+        for _,dx in ipairs({-2.8,2.8}) do
+            for _,dz in ipairs({-3.6,3.6}) do
+                local wheel=part(car,"Rad",Vector3.new(0.7,1.5,1.5),CFrame.new(x+dx,0.8,z+dz)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Rubber,color(30,31,32),false)
                 wheel.Shape=Enum.PartType.Cylinder
             end
         end
     end
 end
 
--- Einfache Passanten mit beweglicher Laufanimation ueber feste Gehweg-Routen.
-local npcFolder=model("Passanten")
-local clothes={col(49,85,119),col(155,67,55),col(69,105,75),col(76,76,86),col(177,143,88)}
-for i=1,12 do
-    local x=(i%2==0) and -145 or 145
-    local z=-520+(i-1)*92
-    local m=model("Passant_"..i,npcFolder)
-    local torso=part(m,"Koerper",Vector3.new(1.5,2.5,0.8),Vector3.new(x,2.0,z),Enum.Material.Fabric,clothes[(i-1)%#clothes+1],false)
-    m.PrimaryPart=torso
-    local head=part(m,"Kopf",Vector3.new(1.05,1.05,1.05),Vector3.new(x,3.8,z),Enum.Material.SmoothPlastic,col(207,166,132),false)
+-- Bewegte Passanten: einfache Figuren laufen auf Gehwegen hin und her.
+-- Die Bewegung ist absichtlich begrenzt, damit niemand in Strasse oder Gleise geraet.
+local pedestrians=folder("Passanten")
+local clothes={color(48,83,119),color(153,67,56),color(70,106,76),color(75,75,86),color(177,143,88)}
+for i=1,16 do
+    local x=(i%2==0) and -169 or 169
+    local z=-770+(i-1)*100
+    local npc=model("Passant_"..i,pedestrians)
+    local body=part(npc,"Koerper",Vector3.new(1.5,2.4,0.8),Vector3.new(x,1.9,z),Enum.Material.Fabric,clothes[(i-1)%#clothes+1],false)
+    npc.PrimaryPart=body
+    local head=part(npc,"Kopf",Vector3.new(1.0,1.0,1.0),Vector3.new(x,3.6,z),Enum.Material.SmoothPlastic,C.skin,false)
     head.Shape=Enum.PartType.Ball
-    part(m,"Bein_L",Vector3.new(0.55,1.6,0.6),Vector3.new(x-0.38,0.8,z),Enum.Material.Fabric,col(43,47,54),false)
-    part(m,"Bein_R",Vector3.new(0.55,1.6,0.6),Vector3.new(x+0.38,0.8,z),Enum.Material.Fabric,col(43,47,54),false)
+    part(npc,"Linkes_Bein",Vector3.new(0.5,1.4,0.55),Vector3.new(x-0.35,0.7,z),Enum.Material.Fabric,color(44,48,55),false)
+    part(npc,"Rechtes_Bein",Vector3.new(0.5,1.4,0.55),Vector3.new(x+0.35,0.7,z),Enum.Material.Fabric,color(44,48,55),false)
 end
-local controller=Instance.new("Script")
-controller.Name="Passanten_Bewegung"
-controller.Source=[[
+local movement=Instance.new("Script")
+movement.Name="Passanten_Bewegung"
+movement.Source = [=[
 local TweenService=game:GetService("TweenService")
 local folder=script.Parent:WaitForChild("Passanten")
 for _,npc in ipairs(folder:GetChildren()) do
     task.spawn(function()
         local root=npc.PrimaryPart
         if not root then return end
-        local origin=root.Position
-        local direction=(npc.Name:match("%d+$") and tonumber(npc.Name:match("%d+$"))%2==0) and 1 or -1
+        local direction=(tonumber(npc.Name:match("%d+$")) or 1)%2==0 and 1 or -1
         while npc.Parent do
-            local target=origin+Vector3.new(0,0,direction*55)
             local start=npc:GetPivot()
-            local goal=start+Vector3.new(0,0,direction*55)
+            local finish=start+Vector3.new(0,0,direction*42)
             local value=Instance.new("CFrameValue")
             value.Value=start
-            local conn=value:GetPropertyChangedSignal("Value"):Connect(function()
+            local connection=value:GetPropertyChangedSignal("Value"):Connect(function()
                 if npc.Parent then npc:PivotTo(value.Value) end
             end)
-            local tween=TweenService:Create(value,TweenInfo.new(18,Enum.EasingStyle.Linear),{Value=goal})
+            local tween=TweenService:Create(value,TweenInfo.new(16,Enum.EasingStyle.Linear),{Value=finish})
             tween:Play()
             tween.Completed:Wait()
-            conn:Disconnect()
+            connection:Disconnect()
             value:Destroy()
-            task.wait(1)
             direction=-direction
+            task.wait(0.8)
         end
     end)
 end
-]]
-controller.Parent=map
+]=]
+movement.Parent=map
 
-print("[RNV MAP V6] Neuer, sauberer Kartenaufbau erstellt.")
-print("[RNV MAP V6] Grosse Stadt, ebener Untergrund, getrennte Strassen, Gleise, 3 Haltepunkte, Rathaus, Quartiere und bewegte Passanten.")
-print("[RNV MAP V6] Alle Objekte liegen unter Workspace > RNV_Mannheim_Map.")
+print("[RNV MAP V7] Neuer Kartenaufbau erstellt.")
+print("[RNV MAP V7] Grosse, zusammenhaengende Stadt; einheitlicher Boden; klare Strassen; Doppelgleis; 3 vollstaendige Haltestellen; Rathaus; Quartiere; bewegte Passanten.")
+print("[RNV MAP V7] Alle Weltobjekte liegen unter Workspace > RNV_Mannheim_Map.")
