@@ -104,7 +104,6 @@ local function partAlongX(parent,name,xStart,xEnd,height,depth,y,z,mat,col,colli
 end
 
 -- Beleuchtung und Atmosphaere fuer ein helles, modernes Stadtbild.
-Lighting.Technology=Enum.Technology.Future
 Lighting.ClockTime=15.1
 Lighting.Brightness=2.25
 Lighting.GlobalShadows=true
