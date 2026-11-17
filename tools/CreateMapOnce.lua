@@ -128,7 +128,7 @@ sun.Parent=Lighting
 
 -- Stadtgrund: eine einzige glatte Flaeche, keine Kachel- oder Rastertextur.
 part(map,"Stadtgrund",Vector3.new(6200,8,6200),Vector3.new(0,-4.2,0),Enum.Material.SmoothPlastic,C.ground,true)
-part(map,"Gruenflaeche_Rand",Vector3.new(6000,0.15,6000),Vector3.new(0,0.02,0),Enum.Material.Grass,C.ground,false)
+part(map,"Gruenflaeche_Rand",Vector3.new(6000,0.15,6000),Vector3.new(0,0.02,0),Enum.Material.SmoothPlastic,C.ground,false)
 
 -- Fluesse und Ufer: Neckar im Norden, Rhein am westlichen Kartenrand.
 part(map,"Neckar_Wasser",Vector3.new(5650,4,250),Vector3.new(0,0.1,-2710),Enum.Material.Water,C.water,false,0.12)
@@ -167,6 +167,31 @@ roadZ(-1450,-2250,2250,54,"Ausfallstrasse")
 roadZ(1450,-2250,2250,54,"Ausfallstrasse")
 roadX(-2150,-2300,2300,38,"Hafenstrasse")
 roadZ(2050,-2300,2300,38,"SuedlicheRingstrasse")
+
+
+-- Rhein- und Neckarbruecken verbinden Ufer und Stadtteile.
+local rhineBridge=model("Rheinbruecke")
+part(rhineBridge,"Fahrbahndeck",Vector3.new(900,1.4,64),Vector3.new(-2710,2.8,-480),Enum.Material.Asphalt,C.asphalt)
+part(rhineBridge,"Gehweg_West",Vector3.new(900,0.35,8),Vector3.new(-2710,3.65,-518),Enum.Material.Concrete,C.pavement)
+part(rhineBridge,"Gehweg_Ost",Vector3.new(900,0.35,8),Vector3.new(-2710,3.65,-442),Enum.Material.Concrete,C.pavement)
+for _,z in ipairs({-514,-446}) do
+    part(rhineBridge,"Brueckengelaender",Vector3.new(900,2.2,0.55),Vector3.new(-2710,5,z),Enum.Material.Metal,C.steel)
+end
+for _,x in ipairs({-2910,-2710,-2510}) do
+    part(rhineBridge,"Pfeiler",Vector3.new(16,3,80),Vector3.new(x,0.3,-480),Enum.Material.Concrete,rgb(118,122,122))
+end
+local neckarBridge=model("Neckarbruecke")
+part(neckarBridge,"Fahrbahndeck",Vector3.new(64,1.4,900),Vector3.new(420,2.8,-2710),Enum.Material.Asphalt,C.asphalt)
+part(neckarBridge,"Gehweg_West",Vector3.new(8,0.35,900),Vector3.new(382,3.65,-2710),Enum.Material.Concrete,C.pavement)
+part(neckarBridge,"Gehweg_Ost",Vector3.new(8,0.35,900),Vector3.new(458,3.65,-2710),Enum.Material.Concrete,C.pavement)
+for _,x in ipairs({378,462}) do
+    part(neckarBridge,"Brueckengelaender",Vector3.new(0.55,2.2,900),Vector3.new(x,5,-2710),Enum.Material.Metal,C.steel)
+end
+for _,z in ipairs({-2910,-2710,-2510}) do
+    part(neckarBridge,"Pfeiler",Vector3.new(80,3,16),Vector3.new(420,0.3,z),Enum.Material.Concrete,rgb(118,122,122))
+end
+part(map,"Neckarbruecken_Anschluss",Vector3.new(54,0.28,1450),Vector3.new(420,0.17,-1800),Enum.Material.Asphalt,C.asphalt)
+part(map,"Rheinbruecken_Anschluss",Vector3.new(1700,0.28,54),Vector3.new(-1850,0.17,-480),Enum.Material.Asphalt,C.asphalt)
 
 -- Dezente Fahrbahnmarkierungen auf Hauptachsen.
 for z=-2300,2300,54 do
@@ -483,6 +508,32 @@ part(church,"Turmhelm",Vector3.new(22,18,22),Vector3.new(2120,72,1840),Enum.Mate
 part(church,"Kirchturmspitze",Vector3.new(1,12,1),Vector3.new(2120,87,1840),Enum.Material.Metal,C.steel)
 for x=2100,2140,20 do
     part(church,"Kirchenfenster",Vector3.new(5,12,0.3),Vector3.new(x,18,1846),Enum.Material.Glass,C.glass,false)
+end
+
+
+-- Weitere markante Innenstadtbauten fuer ein dichteres Mannheimer Stadtbild.
+local kunsthalle=model("Kunsthalle_Mannheim")
+part(kunsthalle,"Hauptbau",Vector3.new(135,38,72),Vector3.new(1580,19,250),Enum.Material.Concrete,rgb(191,193,189))
+part(kunsthalle,"Glasfassade",Vector3.new(125,27,0.65),Vector3.new(1580,19,213),Enum.Material.Glass,C.glass,false,0.1)
+part(kunsthalle,"Flachdach",Vector3.new(145,2.5,82),Vector3.new(1580,39,250),Enum.Material.Concrete,rgb(103,111,112))
+for x=1520,1640,30 do
+    part(kunsthalle,"Fassadenlamelle",Vector3.new(1.2,29,1.4),Vector3.new(x,19,212.5),Enum.Material.Metal,C.white,false)
+end
+local theatre=model("Nationaltheater_Mannheim")
+part(theatre,"Theaterbau",Vector3.new(145,32,105),Vector3.new(650,16,-1270),Enum.Material.Concrete,rgb(207,202,190))
+part(theatre,"Theaterdach",Vector3.new(155,3,115),Vector3.new(650,33,-1270),Enum.Material.Metal,C.steel)
+part(theatre,"Theaterfront_Glas",Vector3.new(125,19,0.7),Vector3.new(650,17,-1323),Enum.Material.Glass,C.glass,false,0.1)
+part(theatre,"Vordach",Vector3.new(150,2,16),Vector3.new(650,29,-1335),Enum.Material.Metal,C.steel)
+local jesuit=model("Jesuitenkirche_Mannheim")
+part(jesuit,"Kirchenschiff",Vector3.new(75,43,150),Vector3.new(-1190,21.5,670),Enum.Material.Brick,rgb(188,158,126))
+part(jesuit,"Kirchendach",Vector3.new(82,3,158),Vector3.new(-1190,44,670),Enum.Material.Slate,C.roof)
+for _,x in ipairs({-1225,-1155}) do
+    part(jesuit,"Kirchturm",Vector3.new(22,70,22),Vector3.new(x,35,590),Enum.Material.Brick,rgb(194,165,132))
+    part(jesuit,"Turmhelm",Vector3.new(27,17,27),Vector3.new(x,78,590),Enum.Material.Slate,C.darkroof)
+    part(jesuit,"Turmspitze",Vector3.new(1,13,1),Vector3.new(x,93,590),Enum.Material.Metal,C.yellow)
+end
+for x=-1215,-1165,25 do
+    part(jesuit,"Kirchenfenster",Vector3.new(7,16,0.35),Vector3.new(x,23,594),Enum.Material.Glass,C.glass,false)
 end
 
 -- Parkanlagen mit Wegen, Baumgruppen, Beeten und Sitzbaenken.
