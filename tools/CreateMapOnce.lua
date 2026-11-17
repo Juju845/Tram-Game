@@ -261,8 +261,8 @@ local function track(axis,center,fixed,startPos,endPos)
         end
     end
 end
-track("Z",0,0,-2500,2450)
-track("X",0,0,-2200,2200)
+track("Z",120,120,-2500,2450)
+track("X",0,120,-2200,2200)
 track("Z",1500,1500,-1800,2250)
 
 -- Historische und moderne Gebaeude. Jede Fassade wird aus Studio-Parts aufgebaut.
@@ -402,13 +402,13 @@ part(map,"Schlossplatz",Vector3.new(390,0.2,270),Vector3.new(-1430,0.12,1190),En
 part(map,"Friedrichsplatz_Anlage",Vector3.new(430,0.24,390),Vector3.new(1240,0.14,280),Enum.Material.Grass,C.grass,false)
 part(map,"Friedrichsplatz_Weg_NS",Vector3.new(28,0.12,380),Vector3.new(1240,0.31,280),Enum.Material.Concrete,C.curb,false)
 part(map,"Friedrichsplatz_Weg_EW",Vector3.new(410,0.12,28),Vector3.new(1240,0.31,280),Enum.Material.Concrete,C.curb,false)
-cylinder(map,"Wasserturm_Brunnen",Vector3.new(86,3,86),CFrame.new(1240,1.8,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Concrete,rgb(205,204,193))
-cylinder(map,"Brunnenwasser",Vector3.new(66,1.2,66),CFrame.new(1240,3.1,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Water,rgb(77,153,177),false)
+cylinder(map,"Wasserturm_Brunnen",Vector3.new(3,86,86),CFrame.new(1240,1.8,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Concrete,rgb(205,204,193))
+cylinder(map,"Brunnenwasser",Vector3.new(1.2,66,66),CFrame.new(1240,3.1,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Water,rgb(77,153,177),false)
 local tower=model("Mannheimer_Wasserturm")
-cylinder(tower,"Sockel_unten",Vector3.new(32,29,32),CFrame.new(1240,18,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Sandstone,rgb(191,155,111))
-cylinder(tower,"Turmschaft",Vector3.new(24,47,24),CFrame.new(1240,53,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Sandstone,rgb(209,176,131))
-cylinder(tower,"Aussichtskranz",Vector3.new(31,8,31),CFrame.new(1240,80,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Sandstone,rgb(190,151,107))
-cylinder(tower,"Dachbasis",Vector3.new(26,18,26),CFrame.new(1240,93,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Slate,rgb(67,94,88))
+cylinder(tower,"Sockel_unten",Vector3.new(29,32,32),CFrame.new(1240,18,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Concrete,rgb(191,155,111))
+cylinder(tower,"Turmschaft",Vector3.new(47,24,24),CFrame.new(1240,53,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Sandstone,rgb(209,176,131))
+cylinder(tower,"Aussichtskranz",Vector3.new(8,31,31),CFrame.new(1240,80,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Sandstone,rgb(190,151,107))
+cylinder(tower,"Dachbasis",Vector3.new(18,26,26),CFrame.new(1240,93,280)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Slate,rgb(67,94,88))
 ball(tower,"Turmspitze",Vector3.new(10,10,10),Vector3.new(1240,105,280),Enum.Material.Metal,C.yellow)
 for a=0,315,45 do
     local rad=math.rad(a)
@@ -458,11 +458,11 @@ local function stopPlatform(name,x,z,axis)
     signFace(logo,"RNV",Enum.NormalId.Left,C.blue)
     part(p,"Abfallbehaelter",Vector3.new(1.1,1.7,1.1),Vector3.new(x+5,1.4,z-37),Enum.Material.Metal,C.steel)
 end
-stopPlatform("Haltestelle_Innenstadt_Nord",-18,-650,"Z")
-stopPlatform("Haltestelle_Paradeplatz",-18,-70,"Z")
-stopPlatform("Haltestelle_Friedrichsplatz",1465,280,"Z")
-stopPlatform("Haltestelle_Hauptbahnhof",-18,1190,"Z")
-stopPlatform("Haltestelle_Seckenheim",1465,1750,"Z")
+stopPlatform("Haltestelle_Innenstadt_Nord",105,-650,"Z")
+stopPlatform("Haltestelle_Paradeplatz",105,-70,"Z")
+stopPlatform("Haltestelle_Friedrichsplatz",1480,280,"Z")
+stopPlatform("Haltestelle_Hauptbahnhof",105,1190,"Z")
+stopPlatform("Haltestelle_Seckenheim",1480,1750,"Z")
 
 -- Seckenheim: kleinstaedtischer Ortskern, Platz, Rathaus und Kirche.
 part(map,"Seckenheim_Platz",Vector3.new(260,0.2,230),Vector3.new(1840,0.14,1930),Enum.Material.Cobblestone,rgb(160,156,144))
@@ -560,7 +560,7 @@ for i=1,38 do
     part(car,"Dach",Vector3.new(4.3,1.5,5.3),Vector3.new(x,2.55,z),Enum.Material.Glass,C.glass,false,0.12)
     for _,dx in ipairs({-2.75,2.75}) do
         for _,dz in ipairs({-3.1,3.1}) do
-            local w=cylinder(car,"Rad",Vector3.new(1.4,0.65,1.4),CFrame.new(x+dx,0.8,z+dz)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Rubber,rgb(28,30,32))
+            local w=cylinder(car,"Rad",Vector3.new(0.65,1.4,1.4),CFrame.new(x+dx,0.8,z+dz),Enum.Material.SmoothPlastic,rgb(28,30,32))
         end
     end
 end
