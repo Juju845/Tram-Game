@@ -149,7 +149,7 @@ atmosphere.Haze=0.75
 
 -- Ein einziger durchgehender Untergrund.
 part(map,"Seckenheim_Gesamtboden",Vector3.new(1800,4,1800),
-    CFrame.new(0,-2.05,0),Enum.Material.Concrete,C.ground)
+    CFrame.new(0,-2,0),Enum.Material.Concrete,C.ground)
 
 -- Seckenheimer Hauptstrasse, Gehwege und Bordsteine.
 part(map,"Seckenheimer_Hauptstrasse",Vector3.new(82,0.24,1420),
@@ -266,10 +266,10 @@ local function tramPlatform(steig,side)
     part(model,"Bahnsteigkante",Vector3.new(0.38,0.16,100),
         base*CFrame.new(-side*7.2,0.50,0),Enum.Material.Concrete,C.yellow)
     part(model,"Taststreifen",Vector3.new(1.15,0.08,96),
-        base*CFrame.new(-side*6.55,0.50,0),Enum.Material.SmoothPlastic,rgb(246,203,71))
+        base*CFrame.new(-side*6.55,0.42,0),Enum.Material.SmoothPlastic,rgb(246,203,71))
     for z=-45,45,5 do
         part(model,"Tastnoppen",Vector3.new(0.22,0.08,0.22),
-            base*CFrame.new(-side*6.55,0.59,z),Enum.Material.Neon,C.yellow,false)
+            base*CFrame.new(-side*6.55,0.48,z),Enum.Material.Neon,C.yellow,false)
     end
     local shelterS=side*1.2
     part(model,"Wartehalle_Dach",Vector3.new(13,0.65,38),
@@ -356,15 +356,16 @@ town.Name="Altes_Rathaus_Seckenheim"
 town.Parent=map
 local townT,townS=70,184
 local h,depth,length=38,48,108
-local cf=localFrame(townT,townS,h/2)
-part(town,"Rathaus_Hauptbau",Vector3.new(depth,h,length),cf,Enum.Material.Concrete,C.townHall)
+local cf=localFrame(townT,townS,0)
+part(town,"Rathaus_Hauptbau",Vector3.new(depth,h,length),
+    cf*CFrame.new(0,h/2,0),Enum.Material.Concrete,C.townHall)
 part(town,"Rathaus_Sockel",Vector3.new(depth+1.4,2,length+1.8),
-    cf*CFrame.new(0,-h/2+1,0),Enum.Material.Concrete,rgb(183,166,139))
+    cf*CFrame.new(0,1,0),Enum.Material.Concrete,rgb(183,166,139))
 part(town,"Rathaus_Gesims",Vector3.new(depth+2,1,length+2),
-    cf*CFrame.new(0,h/2-0.4,0),Enum.Material.Concrete,C.trim)
+    cf*CFrame.new(0,h-0.4,0),Enum.Material.Concrete,C.trim)
 for _,side in ipairs({-1,1}) do
     part(town,"Rathaus_Ziegeldach",Vector3.new(depth/2+2,1.4,length+5),
-        cf*CFrame.new(side*depth/4,h/2+5,0)*CFrame.Angles(0,0,side*math.rad(23)),
+        cf*CFrame.new(side*depth/4,h+5,0)*CFrame.Angles(0,0,side*math.rad(23)),
         Enum.Material.Slate,C.roofRed)
 end
 at(town,"Rathaus_Dachfirst",Vector3.new(1.2,1,length+7),
@@ -512,21 +513,27 @@ for t=-590,590,88 do
         createHouse("Altstadthaus_Ost_"..houseIndex,world(t,91,0),MAIN,1,houseIndex)
     end
 end
-for _,tConst in ipairs({-300,360}) do
-    for s=-300,300,105 do
-        if math.abs(s)>105 then
+for _,streetInfo in ipairs({
+    {t=-300, positions={-315,-210,-105}},
+    {t=360, positions={-315,-210,-105}},
+    {t=150, positions={105,210,315}}
+}) do
+    for _,s in ipairs(streetInfo.positions) do
+        for _,houseSide in ipairs({-1,1}) do
             houseIndex=houseIndex+1
-            createHouse("Nebenstrassenhaus_"..houseIndex,world(tConst,s,0),SIDE,1,houseIndex)
+            local center=world(streetInfo.t+houseSide*62,s,0)
+            local frontSide=(houseSide==-1) and 1 or -1
+            createHouse("Nebenstrassenhaus_"..houseIndex,center,SIDE,frontSide,houseIndex)
         end
     end
 end
 
 -- Platanen, Baenke, Marktstaende, Pergola und Aussenbereich eines Cafes.
-local function tree(parent,t,s,scale)
+local function tree(parent,t,s,scale,baseY)
     local model=Instance.new("Model")
     model.Name="Platane"
     model.Parent=parent or map
-    local base=world(t,s,0.3)
+    local base=world(t,s,baseY or 0.3)
     local trunk=6.2*scale
     part(model,"Baumstamm",Vector3.new(1.1*scale,trunk,1.1*scale),
         CFrame.new(base+UP*(trunk/2)),Enum.Material.Wood,rgb(102,78,54))
@@ -609,7 +616,7 @@ for _,t in ipairs({-95,0,95,190}) do
     planter.Name="Blumenkuebel"
     planter.Parent=plaza
     at(planter,"Pflanzkuebel",Vector3.new(5,1.1,5),t,68,0.55,MAIN,Enum.Material.Concrete,rgb(137,135,125))
-    tree(planter,t,68,0.85)
+    tree(planter,t,68,0.85,1.12)
 end
 
 -- Geparkte Autos ausserhalb der Gleise.
@@ -634,7 +641,7 @@ local function parkedCar(t,s,index)
             wheel.Name="Reifen"
             wheel.Shape=Enum.PartType.Cylinder
             wheel.Size=Vector3.new(0.75,1.65,1.65)
-            wheel.CFrame=cf*CFrame.new(x,0.1,z)
+            wheel.CFrame=cf*CFrame.new(x,0.85,z)
             wheel.Anchored=true
             wheel.Material=Enum.Material.Rubber
             wheel.Color=rgb(31,33,34)
