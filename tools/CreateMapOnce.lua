@@ -282,7 +282,7 @@ local function buildRoad(points, width, name, withLights)
         end
 
         if withLights and index % 10 == 0 then
-            local position = points[index] + pathBasis(points, index) * 0
+            local position = points[index]
             local _, normal = pathBasis(points, index)
             local side = (math.floor(index / 10) % 2 == 0) and 1 or -1
             local lampPosition = position + normal * side * (width / 2 + 4.5)
@@ -649,20 +649,20 @@ local function makePlot(plotNumber, x, z, width, depth, rotation)
 end
 
 local plotData = {
-    {-1010, -340, 78, 62, -18},
-    {-790, -110, 82, 66, 14},
-    {-490, 35, 86, 68, -12},
-    {-170, 80, 82, 66, 18},
-    {180, 90, 84, 70, -15},
-    {790, 360, 88, 72, 22},
-    {760, 720, 84, 68, -16},
-    {420, 930, 82, 68, 12},
-    {60, 1030, 88, 72, -20},
-    {-330, 980, 84, 70, 17},
-    {-760, 780, 86, 72, -24},
-    {-1040, 520, 82, 66, 13},
-    {1040, -260, 86, 70, -18},
-    {1050, 170, 82, 68, 20}
+    {-1070, 170, 78, 62, -18},
+    {-850, 330, 82, 66, 14},
+    {-350, 400, 86, 68, -12},
+    {10, 100, 82, 66, 18},
+    {340, 500, 84, 70, -15},
+    {880, 350, 88, 72, 22},
+    {1080, -680, 84, 68, -16},
+    {960, -1050, 82, 68, 12},
+    {430, -1090, 88, 72, -20},
+    {-20, -1070, 84, 70, 17},
+    {-1220, -300, 86, 72, -24},
+    {-1120, 760, 82, 66, 13},
+    {-500, 1040, 86, 70, -18},
+    {1110, 390, 82, 68, 20}
 }
 for index, values in ipairs(plotData) do
     makePlot(index, values[1], values[2], values[3], values[4], values[5])
