@@ -149,9 +149,14 @@ colorCorrection.Saturation = 0.06
 colorCorrection.TintColor = rgb(255, 250, 241)
 colorCorrection.Parent = Lighting
 
--- Grundflaeche ohne sichtbare quadratische Rasterfelder.
-makePart(map, "Stadtgrund", Vector3.new(2700, 2, 2700), Vector3.new(0, -1.05, 0),
-    Enum.Material.Grass, C.ground, true)
+-- Nahtlose Grundflaeche aus vier gleichfarbigen Teilflaechen.
+-- Jede einzelne Part-Groesse bleibt unter dem Roblox-Limit von 2048 Studs.
+for _, groundX in ipairs({-675, 675}) do
+    for _, groundZ in ipairs({-675, 675}) do
+        makePart(map, "Stadtgrund_Flaeche", Vector3.new(1350, 2, 1350),
+            Vector3.new(groundX, -1.05, groundZ), Enum.Material.Grass, C.ground, true)
+    end
+end
 
 -- Catmull-Rom erzeugt weiche Kurven zwischen den gesetzten Streckenpunkten.
 local function catmullRom(p0, p1, p2, p3, t)
@@ -673,12 +678,12 @@ local park = model("Friedrichsplatz_Wasserturm")
 makePart(park, "Parkflaeche", Vector3.new(230, 0.18, 210),
     CFrame.new(930, 0.08, 70), Enum.Material.Grass, C.grass, false)
 
-local fountain = makePart(park, "Brunnenbecken", Vector3.new(94, 2.5, 94),
+local fountain = makePart(park, "Brunnenbecken", Vector3.new(2.5, 94, 94),
     CFrame.new(930, 1.25, 70) * CFrame.Angles(0, 0, math.rad(90)),
     Enum.Material.Concrete, rgb(205, 203, 190), true)
 fountain.Shape = Enum.PartType.Cylinder
 
-local water = makePart(park, "Brunnenwasser", Vector3.new(78, 1.0, 78),
+local water = makePart(park, "Brunnenwasser", Vector3.new(1.0, 78, 78),
     CFrame.new(930, 2.35, 70) * CFrame.Angles(0, 0, math.rad(90)),
     Enum.Material.Glass, C.water, false, 0.18)
 water.Shape = Enum.PartType.Cylinder
