@@ -597,12 +597,24 @@ makePart(depot, "Werkstatthalle_Dach", Vector3.new(245, 3, 86),
     CFrame.new(-1338, 29.5, -820), Enum.Material.Metal, rgb(58, 72, 80), true)
 
 -- Frontseite: zwei getrennte Tore, genau ueber den beiden Gleismitten.
-for _, z in ipairs({-859, -850, -838.5, -829.5, -810.5, -801.5, -790, -781}) do
-    makePart(depot, "Torpfosten", Vector3.new(3, 26, 2.2),
-        CFrame.new(-1219, 13, z), Enum.Material.Metal, C.steel, true)
+-- Frontwand mit zwei exakt zu den Schienen ausgerichteten Toroeffnungen.
+-- Jedes Tor ist 5 Studs breit; ein massiver Mittelpfosten trennt die Einfahrten.
+for _, segment in ipairs({
+    {centerZ = -843.0, length = 32.0},
+    {centerZ = -820.0, length = 3.0},
+    {centerZ = -797.0, length = 32.0}
+}) do
+    makePart(depot, "Werkstatthalle_Frontwand_Segment",
+        Vector3.new(3, 23, segment.length),
+        CFrame.new(-1219, 11.5, segment.centerZ),
+        Enum.Material.Concrete, rgb(160, 169, 172), true)
 end
 makePart(depot, "Torsturz", Vector3.new(3, 2.5, 78),
     CFrame.new(-1219, 26, -820), Enum.Material.Metal, C.steel, true)
+for _, z in ipairs({-824.2, -815.8}) do
+    makePart(depot, "Torrahmen_Sturz", Vector3.new(3.0, 1.0, 6.0),
+        CFrame.new(-1219, 23.2, z), Enum.Material.Metal, C.railDark, false)
+end
 
 -- Werkstattdetails: Arbeitsgruben-Rand, Werkzeugbereiche, Lichtbaender und Beschilderung.
 for _, x in ipairs({-1400, -1340, -1280}) do
@@ -627,7 +639,7 @@ makePart(depot, "Werkstattgrube_Rahmen_B", Vector3.new(82, 0.3, 1.2),
 local function buildDepotTrack(laneOffset)
     local lane = model(laneOffset < 0 and "Depotgleis_A" or "Depotgleis_B", depotTrackGroup)
     local depotLine = {
-        Vector3.new(-1455, 0, -820),
+        Vector3.new(-1438, 0, -820),
         Vector3.new(-1220, 0, -820)
     }
     local lanePath = offsetPath(depotLine, laneOffset)
@@ -635,8 +647,8 @@ local function buildDepotTrack(laneOffset)
     makeSegment(lane, "Gleisunterbau", 5.15, 0.36,
         lanePath[1], lanePath[2], 0.32, Enum.Material.Concrete, C.trackbed, true)
 
-    for distance = 6, 230, 10.5 do
-        local point = Vector3.new(-1455 + distance, 0, -820)
+    for distance = 6, 215, 10.5 do
+        local point = Vector3.new(-1438 + distance, 0, -820)
         local _, normal = pathBasis(depotLine, 1)
         point += normal * laneOffset
         local frame = CFrame.lookAt(Vector3.new(point.X, 0.57, point.Z),
@@ -755,20 +767,20 @@ local function makePlot(plotNumber, x, z, width, depth, rotation)
 end
 
 local plotData = {
-    {-1070, 170, 78, 62, -18},
     {-850, 330, 82, 66, 14},
     {-350, 400, 86, 68, -12},
     {10, 100, 82, 66, 18},
     {340, 500, 84, 70, -15},
     {880, 350, 88, 72, 22},
     {1080, -680, 84, 68, -16},
-    {960, -1050, 82, 68, 12},
     {430, -1090, 88, 72, -20},
-    {-20, -1070, 84, 70, 17},
     {-1220, -300, 86, 72, -24},
-    {-1120, 760, 82, 66, 13},
-    {-500, 1040, 86, 70, -18},
-    {1110, 390, 82, 68, 20}
+    {-1250, 500, 80, 66, 9},
+    {-520, -700, 84, 68, 16},
+    {120, -700, 82, 66, -13},
+    {1150, -450, 82, 68, 18},
+    {500, 1200, 86, 70, -12},
+    {-1200, 0, 78, 64, 12}
 }
 for index, values in ipairs(plotData) do
     makePlot(index, values[1], values[2], values[3], values[4], values[5])
@@ -1033,7 +1045,8 @@ for index, position in ipairs({
 end
 
 print("[RNV MAP V11] Neue geschwungene Mannheim-Karte wurde erstellt.")
-print("[RNV MAP V11] Zwei getrennte Gleise mit insgesamt vier Schienen; Depotgleise treten aus beiden Hallentoren aus.")
-print("[RNV MAP V11] Spieler-Spawn liegt auf dem Betriebshof-Vorplatz.")
-print("[RNV MAP V11] 46 Stadthaeuser, Geschaefte, oeffentliche Gebaeude und nummerierte Bauflaechen angelegt.")
+print("[RNV MAP V11] Zwei getrennte Gleise mit jeweils zwei Schienen = vier durchgehende Hauptschienen.")
+print("[RNV MAP V11] Zwei Depotgleise laufen aus zwei Hallentoren bis direkt zur Hauptstrecke.")
+print("[RNV MAP V11] Betriebshof-Spawn, Werkstatt, Waschhalle, Verwaltung und Parkplatz angelegt.")
+print("[RNV MAP V11] 46 Stadthaeuser, Geschaefte, oeffentliche Gebaeude und Baugrundstuecke angelegt.")
 print("[RNV MAP V11] Fertig. Im Explorer liegt alles unter Workspace > RNV_Mannheim_Map.")
