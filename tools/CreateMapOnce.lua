@@ -148,7 +148,7 @@ for laneIndex,centre in ipairs(centers) do
  for d=0,total,8 do
   local p,t,n=atDistance(route,d); p=p+n*centre
   local cf=CFrame.lookAt(Vector3.new(p.X,0.58,p.Z),Vector3.new(p.X,0.58,p.Z)+t)
-  part(lane,"Querschwelle",Vector3.new(1.35,0.22,5.9),cf,Enum.Material.Concrete,C.sleeper,true)
+  part(lane,"Querschwelle",Vector3.new(5.9,0.22,1.35),cf,Enum.Material.Concrete,C.sleeper,true)
  end
  for _,gauge in ipairs({-1.5,1.5}) do
   local rp=offset(route,centre+gauge)
@@ -211,7 +211,7 @@ local function station(name,distance)
   local centre=side*20; local pos=p+n*centre
   local platformCF=CFrame.lookAt(Vector3.new(pos.X,0.45,pos.Z),Vector3.new(pos.X,0.45,pos.Z)+t)
   part(s,"Bahnsteig",Vector3.new(7.5,0.8,76),platformCF,Enum.Material.Concrete,C.sidewalk,true)
-  local edgePos=pos+n*(side*3.25)
+  local edgePos=pos-n*(side*3.25)
   local edgeCF=CFrame.lookAt(Vector3.new(edgePos.X,0.98,edgePos.Z),Vector3.new(edgePos.X,0.98,edgePos.Z)+t)
   part(s,"Taktile_Bahnsteigkante",Vector3.new(0.55,0.16,74),edgeCF,Enum.Material.SmoothPlastic,C.yellow,false)
   -- Shelter has a narrow footprint and a long roof aligned with the platform.
@@ -280,7 +280,7 @@ end
 for sideIndex,side in ipairs({-1,1}) do
  for d=105,math.floor(total-70),155 do
   local p,t,n=atDistance(route,d)
-  local q=p+n*(side*91)
+  local q=p+n*(side*108)
   local width=rng:NextInteger(42,58); local depth=rng:NextInteger(34,46)
   local kind=(d%3==0) and "shop" or ((d%2==0) and "apartment" or "house")
   house("Quartierhaus_"..sideIndex.."_"..d,q.X,q.Z,width,depth,rng:NextInteger(2,4),math.deg(math.atan2(-t.Z,t.X)),kind)
