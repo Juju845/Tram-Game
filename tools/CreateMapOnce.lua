@@ -1,6 +1,6 @@
--- RNV MANNHEIM TRAM SIMULATOR | MAP V10
--- Neue organische Stadtkarte mit geschwungener Doppelgleisstrecke,
--- ausgebauten Haltestellen, Betriebshof-Spawn und markierten Bauflächen.
+-- RNV MANNHEIM TRAM SIMULATOR | MAP V11
+-- Ausbau: klar getrennte Doppelgleise (4 Schienen), echte Depotanbindung,
+-- groessere Betriebshofanlage, zahlreiche Gebaeude und markierte Baugrundstuecke.
 -- Einmalig in Roblox Studio Command Bar ausfuehren (nicht im Play-Modus).
 -- Alle Weltobjekte sind normale, einzeln editierbare Studio-Parts.
 
@@ -308,9 +308,9 @@ end
 
 -- Die neue Hauptstrecke ist eine lange S-/Bogenfuehrung statt eines Schienenkreuzes.
 local routeNodes = {
-    Vector3.new(-930, 0, -690),
-    Vector3.new(-770, 0, -520),
-    Vector3.new(-570, 0, -390),
+    Vector3.new(-1220, 0, -820),
+    Vector3.new(-1010, 0, -820),
+    Vector3.new(-810, 0, -760),
     Vector3.new(-330, 0, -320),
     Vector3.new(-80, 0, -340),
     Vector3.new(180, 0, -300),
@@ -390,7 +390,9 @@ end
 
 -- Doppelgleis: getrennte Gleisbetten, Schwellen und sichtbare Schienenprofile.
 local trackFolder = model("Zweigleisige_Tramstrecke")
-local trackCenters = {-2.75, 2.75}
+-- Zwei getrennte Gleise mit je zwei Schienen: sichtbar vier parallele Schienen.
+-- Der groessere Gleismittenabstand schafft Platz fuer zwei entgegenkommende Trams.
+local trackCenters = {-4.2, 4.2}
 local routeMeters = pathLength(route)
 
 for trackIndex, laneOffset in ipairs(trackCenters) do
@@ -487,7 +489,7 @@ local function makeStation(name, fraction)
     local stop = model("Haltestelle_" .. name, stationsFolder)
 
     for _, side in ipairs({-1, 1}) do
-        local platformCenter = center + normal * side * 10.6
+        local platformCenter = center + normal * side * 12.5
         local platform = model(side < 0 and "Bahnsteig_Richtung_A" or "Bahnsteig_Richtung_B", stop)
 
         orientedPart(platform, "Bahnsteigplatte", Vector3.new(9.4, 1.08, 150),
@@ -567,50 +569,149 @@ local function makeStation(name, fraction)
     end
 end
 
-makeStation("Betriebshof", 0.055)
+makeStation("Betriebshof", 0.12)
 makeStation("Neckarstadt", 0.24)
 makeStation("Paradeplatz", 0.43)
 makeStation("Wasserturm", 0.63)
 makeStation("Oststadt", 0.81)
 makeStation("Feudenheim", 0.96)
 
--- Betriebshof mit Werkstatthalle, Vorplatz, Toren und festem Spieler-Spawn.
+-- Betriebshof: zwei offene Garagenbuchten, deren Gleise direkt in die Hauptstrecke uebergehen.
+-- Streckenstart liegt bei x=-1220, z=-820. Die beiden Depotgleise setzen exakt dort an.
 local depot = model("Betriebshof")
-makePart(depot, "Betriebshof_Vorplatz", Vector3.new(270, 0.28, 205),
-    CFrame.new(-1000, 0.12, -760), Enum.Material.Asphalt, C.asphalt, true)
+local depotTrackGroup = model("Depotgleise_Direktverbindung", depot)
 
--- Werkstatthalle: offene Einfahrt mit seitlichen Waenden und Dach.
-makePart(depot, "Werkstatthalle_Rueckwand", Vector3.new(112, 28, 3),
-    CFrame.new(-1110, 14, -815), Enum.Material.Concrete, rgb(166, 174, 176), true)
-makePart(depot, "Werkstatthalle_Seitenwand_L", Vector3.new(3, 28, 92),
-    CFrame.new(-1164, 14, -770), Enum.Material.Concrete, rgb(166, 174, 176), true)
-makePart(depot, "Werkstatthalle_Seitenwand_R", Vector3.new(3, 28, 92),
-    CFrame.new(-1056, 14, -770), Enum.Material.Concrete, rgb(166, 174, 176), true)
-makePart(depot, "Werkstatthalle_Dach", Vector3.new(120, 3, 102),
-    CFrame.new(-1110, 29.5, -770), Enum.Material.Metal, rgb(62, 75, 82), true)
+makePart(depot, "Betriebshof_Vorplatz", Vector3.new(330, 0.3, 230),
+    CFrame.new(-1320, 0.10, -965), Enum.Material.Asphalt, C.asphalt, true)
+makePart(depot, "Hallenboden", Vector3.new(238, 0.35, 78),
+    CFrame.new(-1338, 0.16, -820), Enum.Material.Concrete, rgb(112, 119, 121), true)
 
-for _, x in ipairs({-1140, -1080}) do
-    makePart(depot, "Torpfosten", Vector3.new(2.2, 25, 2.2),
-        CFrame.new(x, 12.5, -724), Enum.Material.Metal, C.steel, true)
+-- Werkstatthalle mit zwei grossen Einfahrtstoren und seitlichen Werkstattfenstern.
+makePart(depot, "Werkstatthalle_Rueckwand", Vector3.new(3, 28, 78),
+    CFrame.new(-1456, 14, -820), Enum.Material.Concrete, rgb(160, 169, 172), true)
+makePart(depot, "Werkstatthalle_Seitenwand_Nord", Vector3.new(238, 28, 3),
+    CFrame.new(-1338, 14, -859), Enum.Material.Concrete, rgb(160, 169, 172), true)
+makePart(depot, "Werkstatthalle_Seitenwand_Sued", Vector3.new(238, 28, 3),
+    CFrame.new(-1338, 14, -781), Enum.Material.Concrete, rgb(160, 169, 172), true)
+makePart(depot, "Werkstatthalle_Dach", Vector3.new(245, 3, 86),
+    CFrame.new(-1338, 29.5, -820), Enum.Material.Metal, rgb(58, 72, 80), true)
+
+-- Frontseite: zwei getrennte Tore, genau ueber den beiden Gleismitten.
+for _, z in ipairs({-859, -850, -838.5, -829.5, -810.5, -801.5, -790, -781}) do
+    makePart(depot, "Torpfosten", Vector3.new(3, 26, 2.2),
+        CFrame.new(-1219, 13, z), Enum.Material.Metal, C.steel, true)
 end
-makePart(depot, "Torsturz", Vector3.new(64, 2.5, 2.2),
-    CFrame.new(-1110, 25, -724), Enum.Material.Metal, C.steel, true)
+makePart(depot, "Torsturz", Vector3.new(3, 2.5, 78),
+    CFrame.new(-1219, 26, -820), Enum.Material.Metal, C.steel, true)
 
-for _, x in ipairs({-1150, -1110, -1070}) do
-    makePart(depot, "Werkstattfenster", Vector3.new(1.0, 5, 15),
-        CFrame.new(x, 17, -817), Enum.Material.Glass, C.glass, false, 0.15)
+-- Werkstattdetails: Arbeitsgruben-Rand, Werkzeugbereiche, Lichtbaender und Beschilderung.
+for _, x in ipairs({-1400, -1340, -1280}) do
+    makePart(depot, "Werkstatt_Lichtband", Vector3.new(1.2, 0.25, 54),
+        CFrame.new(x, 27.7, -820), Enum.Material.Neon, rgb(231, 236, 224), false)
+end
+for _, z in ipairs({-844, -796}) do
+    makePart(depot, "Werkbank", Vector3.new(30, 3, 5),
+        CFrame.new(-1370, 1.7, z), Enum.Material.Metal, C.steel, true)
+    for _, x in ipairs({-1417, -1325}) do
+        makePart(depot, "Werkzeugschrank", Vector3.new(10, 7, 4),
+            CFrame.new(x, 3.5, z), Enum.Material.Metal, rgb(65, 91, 103), true)
+    end
+end
+makePart(depot, "Werkstattgrube_Rahmen_A", Vector3.new(82, 0.3, 1.2),
+    CFrame.new(-1340, 0.42, -826), Enum.Material.Metal, C.yellow, false)
+makePart(depot, "Werkstattgrube_Rahmen_B", Vector3.new(82, 0.3, 1.2),
+    CFrame.new(-1340, 0.42, -814), Enum.Material.Metal, C.yellow, false)
+
+-- Die Depotgleise bestehen aus den gleichen zwei Schienen je Gleis wie die Hauptstrecke.
+-- Sie verlaufen aus der Halle heraus bis exakt zum Startpunkt der Hauptstrecke.
+local function buildDepotTrack(laneOffset)
+    local lane = model(laneOffset < 0 and "Depotgleis_A" or "Depotgleis_B", depotTrackGroup)
+    local depotLine = {
+        Vector3.new(-1455, 0, -820),
+        Vector3.new(-1220, 0, -820)
+    }
+    local lanePath = offsetPath(depotLine, laneOffset)
+
+    makeSegment(lane, "Gleisunterbau", 5.15, 0.36,
+        lanePath[1], lanePath[2], 0.32, Enum.Material.Concrete, C.trackbed, true)
+
+    for distance = 6, 230, 10.5 do
+        local point = Vector3.new(-1455 + distance, 0, -820)
+        local _, normal = pathBasis(depotLine, 1)
+        point += normal * laneOffset
+        local frame = CFrame.lookAt(Vector3.new(point.X, 0.57, point.Z),
+            Vector3.new(point.X + 1, 0.57, point.Z), Vector3.yAxis)
+        makePart(lane, "Betonschwelle", Vector3.new(5.0, 0.20, 1.25),
+            frame, Enum.Material.Concrete, C.sleeper, true)
+    end
+
+    for _, gauge in ipairs({-0.76, 0.76}) do
+        local railLine = offsetPath(depotLine, laneOffset + gauge)
+        makeSegment(lane, "Schienenfuss_und_Steg", 0.34, 0.48,
+            railLine[1], railLine[2], 0.82, Enum.Material.Metal, C.railDark, false)
+        makeSegment(lane, "Polierter_Schienenkopf", 0.57, 0.17,
+            railLine[1], railLine[2], 1.105, Enum.Material.Metal, C.rail, false)
+    end
+
+    -- Fahrdraht verlaeuft im Hallendach und ohne Unterbrechung durch das Tor.
+    makeSegment(depotTrackGroup, "Depot_Kupferfahrdraht",
+        0.16, 0.16, lanePath[1], lanePath[2], 15.55, Enum.Material.Metal, C.copper, false)
+    makeSegment(depotTrackGroup, "Depot_Tragseil",
+        0.13, 0.13, lanePath[1], lanePath[2], 17.0, Enum.Material.Metal, rgb(157, 165, 165), false)
+end
+buildDepotTrack(-4.2)
+buildDepotTrack(4.2)
+
+-- Zufahrt, Verwaltungsgebaeude, Waschhalle, Parkplaetze und gesicherte Einfahrt.
+local accessRoad = smoothPath({
+    Vector3.new(-1440, 0, -1000),
+    Vector3.new(-1330, 0, -1080),
+    Vector3.new(-1190, 0, -1100),
+    Vector3.new(-1080, 0, -1040)
+}, 8)
+buildRoad(accessRoad, 22, "Betriebshof_Zufahrt", false)
+
+makePart(depot, "Verwaltungsgebaeude", Vector3.new(64, 18, 34),
+    CFrame.new(-1490, 9, -945), Enum.Material.Concrete, rgb(190, 194, 187), true)
+makePart(depot, "Verwaltung_Glasfront", Vector3.new(0.6, 12, 29),
+    CFrame.new(-1457.5, 9, -945), Enum.Material.Glass, C.glass, false, 0.12)
+makePart(depot, "Verwaltung_Dach", Vector3.new(69, 2, 38),
+    CFrame.new(-1490, 19, -945), Enum.Material.Metal, C.steel, true)
+
+makePart(depot, "Waschhalle_Wand_Hinten", Vector3.new(76, 16, 2),
+    CFrame.new(-1370, 8, -1065), Enum.Material.Concrete, rgb(172, 181, 180), true)
+makePart(depot, "Waschhalle_Wand_Seite_A", Vector3.new(2, 16, 45),
+    CFrame.new(-1408, 8, -1042.5), Enum.Material.Concrete, rgb(172, 181, 180), true)
+makePart(depot, "Waschhalle_Wand_Seite_B", Vector3.new(2, 16, 45),
+    CFrame.new(-1332, 8, -1042.5), Enum.Material.Concrete, rgb(172, 181, 180), true)
+makePart(depot, "Waschhalle_Dach", Vector3.new(82, 2, 52),
+    CFrame.new(-1370, 17, -1042.5), Enum.Material.Metal, C.steel, true)
+for _, x in ipairs({-1390, -1370, -1350}) do
+    makePart(depot, "Waschportal", Vector3.new(0.6, 13, 1.2),
+        CFrame.new(x, 7, -1018), Enum.Material.Neon, rgb(79, 179, 192), false)
+end
+
+for row = 0, 3 do
+    for col = 0, 5 do
+        local x = -1470 + col * 18
+        local z = -1105 + row * 17
+        makePart(depot, "Mitarbeiterparkplatz", Vector3.new(15, 0.06, 12),
+            CFrame.new(x, 0.28, z), Enum.Material.Asphalt, rgb(54, 59, 63), false)
+        makePart(depot, "Parkplatzlinie", Vector3.new(0.22, 0.04, 11),
+            CFrame.new(x - 7.5, 0.34, z), Enum.Material.SmoothPlastic, C.white, false)
+    end
 end
 
 local depotSign = verticalPart(depot, "Betriebshof_Schild",
-    Vector3.new(1, 5, 25), Vector3.new(-1110, 32, -721),
+    Vector3.new(0.8, 5, 26), Vector3.new(-1211, 32, -820),
     Enum.Material.SmoothPlastic, C.blue, false)
-makeBillboard(depotSign, "RNV BETRIEBSHOF", C.blue, 260, 60)
+makeBillboard(depotSign, "RNV BETRIEBSHOF", C.blue, 270, 60)
 
--- Der Spawn liegt sichtbar auf dem Betriebshof-Vorplatz, nicht auf einem Dach.
+-- Spawn auf dem freien Betriebshof-Vorplatz, sicher ausserhalb der Gleise.
 local spawn = Instance.new("SpawnLocation")
 spawn.Name = "SpielerSpawn_Betriebshof"
 spawn.Size = Vector3.new(9, 1, 9)
-spawn.CFrame = CFrame.new(-980, 0.78, -820)
+spawn.CFrame = CFrame.new(-1350, 0.78, -1000)
 spawn.Anchored = true
 spawn.Neutral = true
 spawn.AllowTeamChangeOnTouch = false
@@ -722,8 +823,217 @@ for _, position in ipairs({
     makeTree(position[1], position[2], 1.0)
 end
 
-print("[RNV MAP V10] Neue geschwungene Mannheim-Karte wurde erstellt.")
-print("[RNV MAP V10] Doppelgleis, Kurven, groessere Haltestellen und verbesserte Oberleitung angelegt.")
-print("[RNV MAP V10] Spieler-Spawn liegt auf dem Betriebshof-Vorplatz.")
-print("[RNV MAP V10] 14 nummerierte, freie Bauflaechen sind im Workspace editierbar.")
-print("[RNV MAP V10] Fertig. Im Explorer liegt alles unter Workspace > RNV_Mannheim_Map.")
+-- Ausgebaute Stadtviertel: viele eigenstaendige, editierbare Gebaeude.
+-- Die Standorte sind bewusst in lockeren Strassenzuegen gruppiert, nicht in einem Raster.
+local buildingsFolder = model("Stadtbebauung")
+local buildingRng = Random.new(241119)
+
+local facadeColors = {
+    rgb(220, 207, 183), rgb(201, 190, 174), rgb(185, 191, 190),
+    rgb(213, 198, 174), rgb(195, 180, 163), rgb(224, 218, 203),
+    rgb(176, 188, 187), rgb(205, 203, 191)
+}
+local roofColors = {
+    rgb(67, 67, 66), rgb(86, 68, 59), rgb(105, 75, 63),
+    rgb(73, 82, 84), rgb(95, 89, 79)
+}
+
+local function makeCityBuilding(name, x, z, width, depth, floors, rotation, style)
+    local building = model(name, buildingsFolder)
+    local frame = CFrame.new(x, 0, z) * CFrame.Angles(0, math.rad(rotation), 0)
+    local height = floors * 9
+    local facade = facadeColors[buildingRng:NextInteger(1, #facadeColors)]
+    local roofColor = roofColors[buildingRng:NextInteger(1, #roofColors)]
+    local isShop = style == "shop"
+    local isApartment = style == "apartment"
+
+    makePart(building, "Gebaeudekoerper", Vector3.new(width, height, depth),
+        frame * CFrame.new(0, height / 2, 0),
+        isShop and Enum.Material.Concrete or Enum.Material.SmoothPlastic, facade, true)
+
+    makePart(building, "Sockelzone", Vector3.new(width + 0.8, 1.0, depth + 0.8),
+        frame * CFrame.new(0, 0.6, 0), Enum.Material.Concrete, rgb(126, 130, 127), true)
+    makePart(building, "Dachabschluss", Vector3.new(width + 2, 1.3, depth + 2),
+        frame * CFrame.new(0, height + 0.4, 0), Enum.Material.Concrete, roofColor, true)
+
+    -- Vorderfassade: regelmaessige, aber pro Haus unterschiedlich breite Fenster.
+    local floorHeight = 9
+    for floorIndex = 1, floors do
+        local windowY = 2.7 + (floorIndex - 1) * floorHeight
+        local windowCount = math.max(2, math.floor(width / 12))
+        for windowIndex = 1, windowCount do
+            local localX = -width / 2 + (windowIndex * width / (windowCount + 1))
+            local windowWidth = isShop and 7.5 or 4.4
+            local windowHeight = isShop and 5.2 or 4.0
+            makePart(building, "Fassadenfenster", Vector3.new(windowWidth, windowHeight, 0.32),
+                frame * CFrame.new(localX, windowY, -depth / 2 - 0.12),
+                Enum.Material.Glass, C.glass, false, 0.12)
+            makePart(building, "Fensterrahmen_Sturz", Vector3.new(windowWidth + 0.5, 0.25, 0.5),
+                frame * CFrame.new(localX, windowY + windowHeight / 2, -depth / 2 - 0.15),
+                Enum.Material.Metal, C.white, false)
+        end
+    end
+
+    -- Seitenfenster geben auch aus schraegem Blickwinkel eine fertige Fassade.
+    for floorIndex = 1, floors do
+        local windowY = 2.7 + (floorIndex - 1) * floorHeight
+        for _, side in ipairs({-1, 1}) do
+            for _, along in ipairs({-depth * 0.28, depth * 0.28}) do
+                makePart(building, "Seitenfenster", Vector3.new(0.32, 4.0, 4.2),
+                    frame * CFrame.new(side * (width / 2 + 0.12), windowY, along),
+                    Enum.Material.Glass, C.glass, false, 0.12)
+            end
+        end
+    end
+
+    -- Eingang mit Vordach, Stufen und einem gut sichtbaren Rahmen.
+    makePart(building, "Hauseingang", Vector3.new(4.8, 7.0, 0.55),
+        frame * CFrame.new(0, 3.5, -depth / 2 - 0.24),
+        Enum.Material.Wood, C.wood, false)
+    makePart(building, "Eingangsvordach", Vector3.new(9.0, 0.65, 4.2),
+        frame * CFrame.new(0, 7.5, -depth / 2 - 2.0),
+        Enum.Material.Metal, C.steel, true)
+    makePart(building, "Eingangsstufe", Vector3.new(7.0, 0.35, 2.4),
+        frame * CFrame.new(0, 0.25, -depth / 2 - 1.7),
+        Enum.Material.Concrete, C.curb, true)
+
+    -- Dachgauben/Schornstein und leicht variierte Dachaufbauten.
+    if buildingRng:NextNumber() > 0.35 then
+        makePart(building, "Schornstein", Vector3.new(3.2, 5.0, 3.2),
+            frame * CFrame.new(width * 0.28, height + 3.0, depth * 0.2),
+            Enum.Material.Brick, rgb(145, 91, 72), true)
+    end
+    if isApartment then
+        for floorIndex = 1, floors - 1 do
+            local balconyY = 4.5 + (floorIndex - 1) * floorHeight
+            makePart(building, "Balkonplatte", Vector3.new(7.0, 0.35, 2.0),
+                frame * CFrame.new(-width * 0.25, balconyY, -depth / 2 - 1.0),
+                Enum.Material.Concrete, C.concrete, true)
+            makePart(building, "Balkongelaender", Vector3.new(7.0, 1.15, 0.18),
+                frame * CFrame.new(-width * 0.25, balconyY + 0.7, -depth / 2 - 1.9),
+                Enum.Material.Metal, C.white, false)
+        end
+    end
+
+    if isShop then
+        local shopSign = makePart(building, "Geschaeftsschild", Vector3.new(width * 0.72, 2.4, 0.5),
+            frame * CFrame.new(0, 8.0, -depth / 2 - 0.42),
+            Enum.Material.SmoothPlastic, C.blue, false)
+        makeBillboard(shopSign, "GESCHAEFT", C.blue, 170, 40)
+        makePart(building, "Markise", Vector3.new(width * 0.72, 0.45, 3.4),
+            frame * CFrame.new(0, 5.9, -depth / 2 - 1.9),
+            Enum.Material.Fabric, C.red, false)
+    end
+
+    return building
+end
+
+-- Wohnquartiere mit wechselnden Hausgroessen und Fassaden.
+local buildingLots = {
+    -- Neckarstadt / westliches Wohngebiet
+    {-1120, 720, 54, 44, 3, 12, "apartment"},
+    {-980, 760, 48, 42, 2, -8, "house"},
+    {-835, 710, 58, 46, 3, 16, "apartment"},
+    {-690, 770, 50, 43, 2, -12, "house"},
+    {-1120, 900, 58, 45, 3, -14, "apartment"},
+    {-970, 930, 47, 42, 2, 9, "house"},
+    {-820, 900, 54, 44, 3, 7, "apartment"},
+    {-675, 940, 48, 42, 2, -10, "house"},
+
+    -- Nordviertel
+    {-420, 1010, 52, 44, 3, 8, "apartment"},
+    {-275, 1040, 48, 42, 2, -8, "house"},
+    {-125, 1000, 58, 46, 4, 13, "apartment"},
+    {35, 1035, 50, 42, 2, -12, "house"},
+    {195, 990, 55, 45, 3, 9, "apartment"},
+    {355, 1015, 48, 42, 2, -7, "house"},
+
+    -- Oststadt und Feudenheim
+    {680, 850, 56, 45, 3, 11, "apartment"},
+    {835, 865, 48, 42, 2, -8, "house"},
+    {990, 835, 58, 46, 4, 14, "apartment"},
+    {1145, 890, 48, 42, 2, -10, "house"},
+    {670, 1010, 50, 43, 2, -12, "house"},
+    {825, 1030, 58, 46, 3, 8, "apartment"},
+    {985, 1000, 49, 42, 2, -8, "house"},
+    {1140, 1040, 56, 45, 3, 12, "apartment"},
+
+    -- Suedliche Wohngebiete
+    {-1120, -320, 56, 45, 3, 10, "apartment"},
+    {-970, -350, 49, 42, 2, -12, "house"},
+    {-820, -315, 58, 46, 3, 8, "apartment"},
+    {-670, -355, 48, 42, 2, -9, "house"},
+    {-1120, -1120, 50, 43, 2, -8, "house"},
+    {-970, -1090, 58, 45, 3, 13, "apartment"},
+    {-815, -1130, 49, 42, 2, -12, "house"},
+    {-660, -1080, 56, 46, 3, 10, "apartment"},
+    {-430, -1115, 48, 42, 2, -9, "house"},
+    {-275, -1080, 58, 46, 3, 13, "apartment"},
+    {-115, -1120, 50, 43, 2, -8, "house"},
+    {45, -1080, 56, 45, 3, 10, "apartment"},
+    {205, -1120, 48, 42, 2, -10, "house"},
+
+    -- Suedoestliche Reihen mit Geschosswohnbauten
+    {820, -1110, 62, 48, 4, 10, "apartment"},
+    {995, -1080, 52, 44, 3, -12, "apartment"},
+    {1160, -1110, 48, 42, 2, 8, "house"},
+    {820, -930, 50, 42, 2, -9, "house"},
+    {980, -900, 60, 48, 3, 13, "apartment"},
+    {1150, -930, 54, 44, 3, -10, "apartment"},
+
+    -- Gewerbe und gemischte Innenstadt
+    {-1130, 170, 66, 48, 3, 12, "shop"},
+    {-970, 205, 58, 45, 3, -9, "shop"},
+    {-810, 165, 64, 48, 4, 10, "apartment"},
+    {-650, 220, 54, 44, 3, -12, "apartment"},
+    {1040, 350, 70, 52, 3, 14, "shop"},
+    {1180, 350, 60, 46, 3, -10, "shop"}
+}
+
+for index, lot in ipairs(buildingLots) do
+    makeCityBuilding("Stadthaus_" .. string.format("%02d", index),
+        lot[1], lot[2], lot[3], lot[4], lot[5], lot[6], lot[7])
+end
+
+-- Zusaetzliche markante Einrichtungen fuer eine belebte Stadt.
+local function makePublicBuilding(name, x, z, width, depth, height, facade, signText)
+    local public = model(name, buildingsFolder)
+    makePart(public, "Hauptgebaeude", Vector3.new(width, height, depth),
+        CFrame.new(x, height / 2, z), Enum.Material.Concrete, facade, true)
+    makePart(public, "Flachdach", Vector3.new(width + 4, 2, depth + 4),
+        CFrame.new(x, height + 1, z), Enum.Material.Metal, C.steel, true)
+    makePart(public, "Glasfront", Vector3.new(width * 0.72, height * 0.62, 0.5),
+        CFrame.new(x, height * 0.52, z - depth / 2 - 0.28),
+        Enum.Material.Glass, C.glass, false, 0.1)
+    local sign = makePart(public, "Gebaeudeschild", Vector3.new(width * 0.55, 3.5, 0.7),
+        CFrame.new(x, height - 4, z - depth / 2 - 0.5),
+        Enum.Material.SmoothPlastic, C.blue, false)
+    makeBillboard(sign, signText, C.blue, 220, 48)
+    return public
+end
+
+makePublicBuilding("Stadtbibliothek", -510, 500, 92, 66, 28, rgb(193, 199, 196), "STADTBIBLIOTHEK")
+makePublicBuilding("Schule", 520, 1040, 112, 72, 24, rgb(211, 204, 186), "SCHULE")
+makePublicBuilding("Einkaufszentrum", 1100, 570, 120, 76, 28, rgb(181, 190, 190), "EINKAUFSZENTRUM")
+makePublicBuilding("Feuerwache", -1070, 430, 86, 62, 22, rgb(190, 190, 185), "FEUERWACHE")
+
+-- Stadtmoebel: Bushaltestellen, Fahrradstaender, Muelleimer und kleine Beete.
+for index, position in ipairs({
+    {-1040, 620}, {-740, 610}, {-350, 930}, {280, 930},
+    {720, 790}, {1080, 760}, {-1080, -470}, {-760, -470},
+    {900, -790}, {1110, -790}, {-380, -990}, {210, -990}
+}) do
+    local streetFurniture = model("Stadtmobiliar_" .. index, buildingsFolder)
+    makePart(streetFurniture, "Pflanzkuebel", Vector3.new(5, 1.1, 5),
+        CFrame.new(position[1], 0.55, position[2]), Enum.Material.Concrete, C.concrete, true)
+    makeBall(streetFurniture, "Strauch", Vector3.new(4.5, 4.5, 4.5),
+        Vector3.new(position[1], 3.2, position[2]), Enum.Material.Grass, C.green)
+    makePart(streetFurniture, "Muelleimer", Vector3.new(1.3, 1.8, 1.3),
+        CFrame.new(position[1] + 7, 0.9, position[2]), Enum.Material.Metal, C.steel, true)
+end
+
+print("[RNV MAP V11] Neue geschwungene Mannheim-Karte wurde erstellt.")
+print("[RNV MAP V11] Zwei getrennte Gleise mit insgesamt vier Schienen; Depotgleise treten aus beiden Hallentoren aus.")
+print("[RNV MAP V11] Spieler-Spawn liegt auf dem Betriebshof-Vorplatz.")
+print("[RNV MAP V11] 46 Stadthaeuser, Geschaefte, oeffentliche Gebaeude und nummerierte Bauflaechen angelegt.")
+print("[RNV MAP V11] Fertig. Im Explorer liegt alles unter Workspace > RNV_Mannheim_Map.")
