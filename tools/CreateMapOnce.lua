@@ -336,7 +336,20 @@ block(park,"Teich",Vector3.new(150,0.4,76),Vector3.new(650,0.2,1450),Enum.Materi
 block(park,"Uferweg",Vector3.new(210,0.25,10),Vector3.new(650,0.28,1495),Enum.Material.Concrete,C.sidewalk,false)
 for _,p in ipairs({{480,1360},{560,1370},{750,1360},{830,1430},{500,1530},{780,1540}}) do tree(p[1],p[2],1.1) end
 
-print("[LINDENHAFEN V13] Neue offene Tramstrecke und groessere Stadt erstellt.")
+-- GESAMTE KARTE VERGROESSERN: Strecke, Gleisabstand, Gebaeude, Strassen,
+-- Haltestellen, Oberleitung, Mobiliar und Grasflaeche werden gemeinsam skaliert.
+-- Dadurch bleiben alle Abstaende und Hoehenverhaeltnisse erhalten.
+local MAP_SCALE = 1.5
+for _,obj in ipairs(map:GetDescendants()) do
+ if obj:IsA("BasePart") then
+  local oldCF=obj.CFrame
+  local rotation=oldCF-oldCF.Position
+  obj.Size=obj.Size*MAP_SCALE
+  obj.CFrame=CFrame.new(oldCF.Position*MAP_SCALE)*rotation
+ end
+end
+
+print("[LINDENHAFEN V14] Neue offene Tramstrecke und groessere Stadt erstellt.")
 print("[LINDENHAFEN V13] Lange Geraden, mehrere Kurven, kein geschlossener Ring.")
 print("[LINDENHAFEN V13] Bahnsteige parallel zur Strecke; Strassen neben statt ueber den Gleisen.")
 print("[LINDENHAFEN V13] Depot mit zwei Toren am Streckenanfang.")
