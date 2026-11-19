@@ -14,7 +14,7 @@ for _,v in ipairs(Workspace:GetDescendants()) do
 end
 
 local map = Instance.new("Folder")
-map.Name = "Lindenhafen_Stadt"
+map.Name = "RNV_Mannheim_Map"
 map.Parent = Workspace
 
 local function color(r,g,b) return Color3.fromRGB(r,g,b) end
@@ -398,4 +398,4 @@ print("[LINDENHAFEN V12] Neue Stadtkarte wurde aufgebaut.")
 print("[LINDENHAFEN V12] Gleismittenabstand 18 Studs; vier Schienen mit deutlich breiterem Zwischenraum.")
 print("[LINDENHAFEN V12] Drei grosse Haltestellen, Oberleitung, Strassen, Parks und neu gestaltete Gebaeude.")
 print("[LINDENHAFEN V12] Keine schwebenden Bauplatz-/Haltestellen-Beschriftungen.")
-print("[LINDENHAFEN V12] Alle Stadtobjekte liegen einzeln editierbar unter Workspace > Lindenhafen_Stadt.")
+print("[LINDENHAFEN V12] Alle Stadtobjekte liegen einzeln editierbar unter Workspace > RNV_Mannheim_Map.")
