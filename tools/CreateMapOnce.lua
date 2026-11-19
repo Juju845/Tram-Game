@@ -961,10 +961,10 @@ local buildingLots = {
     {355, 1015, 48, 42, 2, -7, "house"},
 
     -- Oststadt und Feudenheim
-    {680, 850, 56, 45, 3, 11, "apartment"},
-    {835, 865, 48, 42, 2, -8, "house"},
-    {990, 835, 58, 46, 4, 14, "apartment"},
-    {1145, 890, 48, 42, 2, -10, "house"},
+    {680, 470, 56, 45, 3, 11, "apartment"},
+    {835, 470, 48, 42, 2, -8, "house"},
+    {990, 470, 58, 46, 4, 14, "apartment"},
+    {1145, 470, 48, 42, 2, -10, "house"},
     {670, 1010, 50, 43, 2, -12, "house"},
     {825, 1030, 58, 46, 3, 8, "apartment"},
     {985, 1000, 49, 42, 2, -8, "house"},
@@ -975,15 +975,15 @@ local buildingLots = {
     {-970, -350, 49, 42, 2, -12, "house"},
     {-820, -315, 58, 46, 3, 8, "apartment"},
     {-670, -355, 48, 42, 2, -9, "house"},
-    {-1120, -1120, 50, 43, 2, -8, "house"},
-    {-970, -1090, 58, 45, 3, 13, "apartment"},
-    {-815, -1130, 49, 42, 2, -12, "house"},
-    {-660, -1080, 56, 46, 3, 10, "apartment"},
-    {-430, -1115, 48, 42, 2, -9, "house"},
-    {-275, -1080, 58, 46, 3, 13, "apartment"},
-    {-115, -1120, 50, 43, 2, -8, "house"},
-    {45, -1080, 56, 45, 3, 10, "apartment"},
-    {205, -1120, 48, 42, 2, -10, "house"},
+    {-1120, -1220, 50, 43, 2, -8, "house"},
+    {-970, -1210, 58, 45, 3, 13, "apartment"},
+    {-815, -1230, 49, 42, 2, -12, "house"},
+    {-660, -1200, 56, 46, 3, 10, "apartment"},
+    {-430, -1215, 48, 42, 2, -9, "house"},
+    {-275, -1200, 58, 46, 3, 13, "apartment"},
+    {-115, -1220, 50, 43, 2, -8, "house"},
+    {45, -1200, 56, 45, 3, 10, "apartment"},
+    {205, -1220, 48, 42, 2, -10, "house"},
 
     -- Suedoestliche Reihen mit Geschosswohnbauten
     {820, -1110, 62, 48, 4, 10, "apartment"},
@@ -1025,7 +1025,7 @@ local function makePublicBuilding(name, x, z, width, depth, height, facade, sign
 end
 
 makePublicBuilding("Stadtbibliothek", -510, 500, 92, 66, 28, rgb(193, 199, 196), "STADTBIBLIOTHEK")
-makePublicBuilding("Schule", 520, 1040, 112, 72, 24, rgb(211, 204, 186), "SCHULE")
+makePublicBuilding("Schule", -350, -650, 112, 72, 24, rgb(211, 204, 186), "SCHULE")
 makePublicBuilding("Einkaufszentrum", 1100, 570, 120, 76, 28, rgb(181, 190, 190), "EINKAUFSZENTRUM")
 makePublicBuilding("Feuerwache", -1070, 430, 86, 62, 22, rgb(190, 190, 185), "FEUERWACHE")
 
@@ -1048,5 +1048,5 @@ print("[RNV MAP V11] Neue geschwungene Mannheim-Karte wurde erstellt.")
 print("[RNV MAP V11] Zwei getrennte Gleise mit jeweils zwei Schienen = vier durchgehende Hauptschienen.")
 print("[RNV MAP V11] Zwei Depotgleise laufen aus zwei Hallentoren bis direkt zur Hauptstrecke.")
 print("[RNV MAP V11] Betriebshof-Spawn, Werkstatt, Waschhalle, Verwaltung und Parkplatz angelegt.")
-print("[RNV MAP V11] 46 Stadthaeuser, Geschaefte, oeffentliche Gebaeude und Baugrundstuecke angelegt.")
+print("[RNV MAP V11] 47 Stadthaeuser, Geschaefte, oeffentliche Gebaeude und Baugrundstuecke angelegt.")
 print("[RNV MAP V11] Fertig. Im Explorer liegt alles unter Workspace > RNV_Mannheim_Map.")
