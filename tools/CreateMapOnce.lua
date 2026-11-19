@@ -1,4 +1,4 @@
--- LINDENHAFEN V13 - offene Stadtbahnstrecke, breites Doppelgleis, neue Stadt
+-- LINDENHAFEN V15 - offene Stadtbahnstrecke, breites Doppelgleis, neue Stadt
 -- Einmalig in Roblox Studio Command Bar ausfuehren. Alle Teile bleiben editierbar.
 
 local Workspace = game:GetService("Workspace")
@@ -93,7 +93,7 @@ local cc=Instance.new("ColorCorrectionEffect"); cc.Name="RNV_Color"
 cc.Contrast=0.06; cc.Saturation=0.03; cc.TintColor=col(255,249,239); cc.Parent=Lighting
 
 -- Grosses, zusammenhaengendes Stadtgebiet statt vier kleiner Bodenplatten.
-block(map,"Stadtgebiet_Lindenhafen",Vector3.new(4200,3,3600),Vector3.new(0,-1.7,0),Enum.Material.Grass,C.grass,true)
+block(map,"Stadtgebiet_Lindenhafen",Vector3.new(4200,3,3600),Vector3.new(0,-1.5,0),Enum.Material.Grass,C.grass,true) -- Oberkante exakt auf Y=0
 
 -- Offene Linie: lange Gerade, sanfte Kurven, weitere Gerade und ein zweiter Bogen.
 -- Kein geschlossener Ring. Enden bleiben fuer spaetere Erweiterungen offen.
@@ -172,11 +172,13 @@ for _,z in ipairs({-1045,-1000,-955}) do
  block(hall,"Torpfosten",Vector3.new(2,15,2),Vector3.new(-1708,7.5,z),Enum.Material.Metal,C.steel,true)
 end
 block(hall,"Torsturz",Vector3.new(2,2,100),Vector3.new(-1708,17,-1000),Enum.Material.Metal,C.steel,true)
-for _,z in ipairs({-1009,-991}) do
+-- Zwei Anschlussgleise mit je zwei Schienen, passend zum Haupt-Doppelgleis.
+for _,centre in ipairs({-9,9}) do
+ local z=-1000+centre
  segment(depot,"Depotanschluss_Bett",6.5,0.35,Vector3.new(-1708,0,z),Vector3.new(-1645,0,z),0.3,Enum.Material.Concrete,C.bed,true)
  for _,g in ipairs({-1.5,1.5}) do
   local zz=z+g
-  segment(depot,"Depotanschluss_Schiene",0.65,0.2,Vector3.new(-1708,0,zz),Vector3.new(-1645,0,zz),1.13,Enum.Material.Metal,C.rail,false)
+  segment(depot,"Depotanschluss_Schiene",0.66,0.2,Vector3.new(-1708,0,zz),Vector3.new(-1645,0,zz),1.13,Enum.Material.Metal,C.rail,false)
  end
 end
 -- Spawn ausserhalb der Hallentore
@@ -340,6 +342,7 @@ for _,p in ipairs({{480,1360},{560,1370},{750,1360},{830,1430},{500,1530},{780,1
 -- Haltestellen, Oberleitung, Mobiliar und Grasflaeche werden gemeinsam skaliert.
 -- Dadurch bleiben alle Abstaende und Hoehenverhaeltnisse erhalten.
 local MAP_SCALE = 1.5
+-- Alle Bauteile inklusive Spawn, Gleise, Gebaeude und Deko einheitlich skalieren.
 for _,obj in ipairs(map:GetDescendants()) do
  if obj:IsA("BasePart") then
   local oldCF=obj.CFrame
@@ -348,9 +351,12 @@ for _,obj in ipairs(map:GetDescendants()) do
   obj.CFrame=CFrame.new(oldCF.Position*MAP_SCALE)*rotation
  end
 end
+-- Grasoberkante exakt auf Y=0 setzen, damit Gebaeude nicht schweben.
+local ground=map:FindFirstChild("Stadtgebiet_Lindenhafen")
+if ground then ground.Position=Vector3.new(0,-ground.Size.Y/2,0) end
 
-print("[LINDENHAFEN V14] Neue offene Tramstrecke und groessere Stadt erstellt.")
-print("[LINDENHAFEN V13] Lange Geraden, mehrere Kurven, kein geschlossener Ring.")
-print("[LINDENHAFEN V13] Bahnsteige parallel zur Strecke; Strassen neben statt ueber den Gleisen.")
-print("[LINDENHAFEN V13] Depot mit zwei Toren am Streckenanfang.")
-print("[LINDENHAFEN V13] Alle Stadtteile sind unter Workspace > RNV_Mannheim_Map editierbar.")
+print("[LINDENHAFEN V15] Neue offene Tramstrecke und groessere Stadt erstellt.")
+print("[LINDENHAFEN V15] Lange Geraden, mehrere Kurven, kein geschlossener Ring.")
+print("[LINDENHAFEN V15] Bahnsteige parallel zur Strecke; Strassen neben statt ueber den Gleisen.")
+print("[LINDENHAFEN V15] Depotanschluss mit zwei korrekt ausgerichteten Doppelgleisen.")
+print("[LINDENHAFEN V15] Alle Stadtteile sind unter Workspace > RNV_Mannheim_Map editierbar.")
