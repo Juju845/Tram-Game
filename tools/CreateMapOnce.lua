@@ -184,8 +184,8 @@ end
 -- Oberleitung mit Masten ausserhalb der beiden Gleise, Quertragwerken und Fahrdraht.
 local overhead=model("Oberleitung_komplett")
 for i=5,#route-4,6 do
- local p,t,n=basis(route,i); local pos=route[i]
- local left=pos-n*20; local right=pos+n*20
+ local tangent,normal=basis(route,i); local pos=route[i]
+ local left=pos-normal*20; local right=pos+normal*20
  for _,q in ipairs({left,right}) do
   block(overhead,"Mastfuss",Vector3.new(2,0.65,2),Vector3.new(q.X,0.33,q.Z),Enum.Material.Concrete,C.concrete,true)
   block(overhead,"Stahlmast",Vector3.new(0.75,17.5,0.75),Vector3.new(q.X,9.1,q.Z),Enum.Material.Metal,C.steel,true)
@@ -193,7 +193,7 @@ for i=5,#route-4,6 do
  end
  segment(overhead,"Quertragwerk",0.45,0.45,left,right,16.8,Enum.Material.Metal,C.steel,false)
  for _,centre in ipairs(centers) do
-  local wp=pos+n*centre
+  local wp=pos+normal*centre
   block(overhead,"Isolator",Vector3.new(0.7,0.65,0.7),Vector3.new(wp.X,16.35,wp.Z),Enum.Material.SmoothPlastic,C.cream,false)
  end
 end
