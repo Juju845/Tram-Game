@@ -366,6 +366,37 @@ buildRoad(roadA, 27, "Verbindungsstrasse_West_Ost", false)
 buildRoad(roadB, 25, "Suedliche_Stadtstrasse", false)
 buildRoad(roadC, 25, "Nordbogen_Stadtstrasse", false)
 
+-- Zusaetzliche geschwungene Quartiersstrassen verbinden die Wohngebiete.
+local neighbourhoodRoads = {
+    {
+        name = "Neckarstadt_Wohnstrasse",
+        nodes = {Vector3.new(-1240,0,810), Vector3.new(-960,0,825), Vector3.new(-720,0,800), Vector3.new(-540,0,820)}
+    },
+    {
+        name = "Westliches_Wohnquartier",
+        nodes = {Vector3.new(-1240,0,-455), Vector3.new(-980,0,-470), Vector3.new(-760,0,-445), Vector3.new(-590,0,-430)}
+    },
+    {
+        name = "Suedliche_Wohnstrasse",
+        nodes = {Vector3.new(-1170,0,-1140), Vector3.new(-900,0,-1150), Vector3.new(-610,0,-1140), Vector3.new(-300,0,-1155), Vector3.new(220,0,-1135)}
+    },
+    {
+        name = "Feudenheimer_Wohnstrasse",
+        nodes = {Vector3.new(760,0,-1020), Vector3.new(930,0,-1035), Vector3.new(1100,0,-1010), Vector3.new(1230,0,-990)}
+    },
+    {
+        name = "Geschaeftsstrasse_West",
+        nodes = {Vector3.new(-1220,0,90), Vector3.new(-1000,0,75), Vector3.new(-820,0,95), Vector3.new(-620,0,115)}
+    },
+    {
+        name = "Geschaeftsstrasse_Ost",
+        nodes = {Vector3.new(930,0,265), Vector3.new(1060,0,250), Vector3.new(1210,0,275)}
+    }
+}
+for _, roadData in ipairs(neighbourhoodRoads) do
+    buildRoad(smoothPath(roadData.nodes, 7), 18, roadData.name, false)
+end
+
 -- Gekruemmter Fluss am noerdlichen Kartenrand.
 local riverPath = smoothPath({
     Vector3.new(-1180, 0, 1180),
@@ -673,6 +704,19 @@ local function buildDepotTrack(laneOffset)
 end
 buildDepotTrack(-4.2)
 buildDepotTrack(4.2)
+
+-- Quertragwerke im Halleninneren tragen die beiden Depot-Fahrdraehte.
+for _, x in ipairs({-1400, -1340, -1280}) do
+    makePart(depotTrackGroup, "Depot_Quertragwerk", Vector3.new(0.45, 0.45, 58),
+        CFrame.new(x, 18.0, -820), Enum.Material.Metal, C.steel, false)
+    for _, laneOffset in ipairs({-4.2, 4.2}) do
+        makePart(depotTrackGroup, "Depot_Keramikisolator", Vector3.new(0.8, 0.65, 0.8),
+            CFrame.new(x, 17.35, -820 + laneOffset), Enum.Material.SmoothPlastic,
+            rgb(220, 214, 190), false)
+        makePart(depotTrackGroup, "Depot_Fahrdraht_Haenger", Vector3.new(0.1, 1.35, 0.1),
+            CFrame.new(x, 16.25, -820 + laneOffset), Enum.Material.Metal, C.copper, false)
+    end
+end
 
 -- Zufahrt, Verwaltungsgebaeude, Waschhalle, Parkplaetze und gesicherte Einfahrt.
 local accessRoad = smoothPath({
