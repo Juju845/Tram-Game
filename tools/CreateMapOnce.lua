@@ -1,7 +1,5 @@
--- LINDENHAFEN TRAM CITY | MAP V12
--- Komplett neue Stadtgestaltung. Einmalig in Studio Command Bar ausfuehren.
--- Alle Objekte bleiben normale, einzeln editierbare Parts/Models.
--- Keine schwebenden Karten-, Bauplatz- oder Haltestellen-Billboards.
+-- LINDENHAFEN V13 - offene Stadtbahnstrecke, breites Doppelgleis, neue Stadt
+-- Einmalig in Roblox Studio Command Bar ausfuehren. Alle Teile bleiben editierbar.
 
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
@@ -10,78 +8,39 @@ if old then old:Destroy() end
 local base = Workspace:FindFirstChild("Baseplate")
 if base then base:Destroy() end
 for _,v in ipairs(Workspace:GetDescendants()) do
-    if v:IsA("SpawnLocation") then v:Destroy() end
+ if v:IsA("SpawnLocation") then v:Destroy() end
 end
 
-local map = Instance.new("Folder")
-map.Name = "RNV_Mannheim_Map"
-map.Parent = Workspace
-
-local function color(r,g,b) return Color3.fromRGB(r,g,b) end
-local C = {
- grass=color(91,135,83), grass2=color(112,151,93), asphalt=color(48,53,57),
- sidewalk=color(185,183,172), curb=color(220,215,197), concrete=color(139,145,145),
- trackbed=color(66,73,77), sleeper=color(126,132,130), rail=color(202,211,213),
- steel=color(48,61,69), wire=color(181,145,91), glass=color(105,169,190),
- cream=color(224,211,184), brick=color(177,105,82), white=color(241,238,224),
- green=color(65,117,73), water=color(62,139,157), dark=color(54,57,60)
+local map=Instance.new("Folder"); map.Name="RNV_Mannheim_Map"; map.Parent=Workspace
+local function col(r,g,b) return Color3.fromRGB(r,g,b) end
+local C={
+ grass=col(94,137,88), grass2=col(119,151,99), asphalt=col(48,53,58),
+ sidewalk=col(187,184,171), curb=col(221,215,197), concrete=col(143,149,149),
+ bed=col(65,72,77), sleeper=col(125,132,132), rail=col(207,215,216),
+ steel=col(48,61,69), wire=col(181,145,91), glass=col(105,169,190),
+ white=col(241,238,224), green=col(69,119,75), dark=col(54,57,60),
+ wood=col(139,101,70), yellow=col(231,190,75)
 }
-local function folder(name,parent)
- local x=Instance.new("Folder"); x.Name=name; x.Parent=parent or map; return x
+local function folder(n,p) local o=Instance.new("Folder"); o.Name=n; o.Parent=p or map; return o end
+local function model(n,p) local o=Instance.new("Model"); o.Name=n; o.Parent=p or map; return o end
+local function part(p,n,s,cf,mat,c,collide,trans)
+ local o=Instance.new("Part"); o.Name=n; o.Size=s; o.CFrame=cf
+ o.Anchored=true; o.Material=mat or Enum.Material.SmoothPlastic; o.Color=c or C.white
+ o.TopSurface=Enum.SurfaceType.Smooth; o.BottomSurface=Enum.SurfaceType.Smooth
+ o.CanCollide=collide==true; o.CanTouch=false; o.CastShadow=true
+ if trans then o.Transparency=trans end
+ o.Parent=p or map; return o
 end
-local function model(name,parent)
- local x=Instance.new("Model"); x.Name=name; x.Parent=parent or map; return x
+local function block(p,n,s,pos,mat,c,collide)
+ return part(p,n,s,CFrame.new(pos),mat,c,collide)
 end
-local function part(parent,name,size,cf,mat,col,collide,trans)
- local p=Instance.new("Part"); p.Name=name; p.Size=size; p.CFrame=cf
- p.Anchored=true; p.Material=mat or Enum.Material.SmoothPlastic
- p.Color=col or C.white; p.TopSurface=Enum.SurfaceType.Smooth
- p.BottomSurface=Enum.SurfaceType.Smooth; p.CastShadow=true
- p.CanTouch=false; p.CanCollide=collide==true
- if trans then p.Transparency=trans end
- p.Parent=parent or map; return p
-end
-local function block(parent,name,size,pos,mat,col,collide)
- return part(parent,name,size,CFrame.new(pos),mat,col,collide)
-end
-local function segment(parent,name,width,height,a,b,y,mat,col,collide)
- local d=b-a; local flat=Vector3.new(d.X,0,d.Z)
- if flat.Magnitude<0.05 then return end
+local function segment(p,n,w,h,a,b,y,mat,c,collide)
+ local d=Vector3.new(b.X-a.X,0,b.Z-a.Z)
+ if d.Magnitude<0.1 then return end
  local mid=(a+b)*0.5
- local cf=CFrame.lookAt(Vector3.new(mid.X,y,mid.Z),Vector3.new(mid.X, y, mid.Z)+flat.Unit,Vector3.yAxis)
- return part(parent,name,Vector3.new(width,height,flat.Magnitude+0.15),cf,mat,col,collide)
+ local cf=CFrame.lookAt(Vector3.new(mid.X,y,mid.Z),Vector3.new(mid.X,y,mid.Z)+d.Unit)
+ return part(p,n,Vector3.new(w,h,d.Magnitude+0.08),cf,mat,c,collide)
 end
-local function ball(parent,name,size,pos,mat,col)
- local p=block(parent,name,size,pos,mat,col,false); p.Shape=Enum.PartType.Ball; return p
-end
-
--- Tageslicht und ruhige, warme Stadtfarben.
-Lighting.ClockTime=14.1; Lighting.Brightness=2.15; Lighting.GlobalShadows=true
-Lighting.ShadowSoftness=0.38; Lighting.Ambient=color(118,125,127)
-Lighting.OutdoorAmbient=color(164,171,169); Lighting.EnvironmentDiffuseScale=0.7
-Lighting.EnvironmentSpecularScale=0.42
-for _,n in ipairs({"RNV_Atmosphere","RNV_Color","RNV_Bloom"}) do
- local e=Lighting:FindFirstChild(n); if e then e:Destroy() end
-end
-local at=Instance.new("Atmosphere"); at.Name="RNV_Atmosphere"; at.Density=0.19
-at.Offset=0.08; at.Color=color(205,222,229); at.Decay=color(124,139,145)
-at.Haze=0.65; at.Glare=0.04; at.Parent=Lighting
-local cc=Instance.new("ColorCorrectionEffect"); cc.Name="RNV_Color"
-cc.Brightness=0.01; cc.Contrast=0.07; cc.Saturation=0.04
-cc.TintColor=color(255,249,238); cc.Parent=Lighting
-
--- Stadtgrund und Park-/Wasserflaechen.
-for _,x in ipairs({-650,650}) do
- for _,z in ipairs({-650,650}) do
-  block(map,"Stadtterrain",Vector3.new(1300,2,1300),Vector3.new(x,-1.1,z),Enum.Material.Grass,C.grass,true)
- end
-end
-local nature=folder("Parks_und_Ufer")
-block(nature,"Lindenpark_Wiese",Vector3.new(360,0.25,250),Vector3.new(-680,0.08,500),Enum.Material.Grass,C.grass2,false)
-block(nature,"Stadtteich",Vector3.new(180,0.45,92),Vector3.new(-680,0.18,500),Enum.Material.Glass,C.water,false)
-block(nature,"Uferpromenade",Vector3.new(230,0.35,12),Vector3.new(-680,0.25,550),Enum.Material.Concrete,C.sidewalk,true)
-
--- Weiche Kurven fuer Tram und Strassen.
 local function cat(p0,p1,p2,p3,t)
  local t2=t*t; local t3=t2*t
  return (p1*2+(p2-p0)*t+(p0*2-p1*5+p2*4-p3)*t2+(-p0+p1*3-p2*3+p3)*t3)*0.5
@@ -97,7 +56,7 @@ local function smooth(nodes,steps)
 end
 local function basis(points,i)
  local d=points[math.min(#points,i+1)]-points[math.max(1,i-1)]
- if d.Magnitude<0.001 then d=Vector3.new(0,0,-1) end
+ if d.Magnitude<0.001 then d=Vector3.new(1,0,0) end
  local t=d.Unit; return t,Vector3.new(-t.Z,0,t.X)
 end
 local function offset(points,n)
@@ -105,11 +64,11 @@ local function offset(points,n)
  for i,p in ipairs(points) do local _,normal=basis(points,i); out[i]=p+normal*n end
  return out
 end
-local function length(points)
- local n=0; for i=1,#points-1 do n+=(points[i+1]-points[i]).Magnitude end; return n
+local function pathLength(points)
+ local sum=0; for i=1,#points-1 do sum+=(points[i+1]-points[i]).Magnitude end; return sum
 end
 local function atDistance(points,dist)
- local left=dist
+ local left=math.clamp(dist,0,pathLength(points))
  for i=1,#points-1 do
   local d=(points[i+1]-points[i]).Magnitude
   if left<=d or i==#points-1 then
@@ -122,280 +81,263 @@ local function atDistance(points,dist)
  local t,n=basis(points,#points); return points[#points],t,n
 end
 
--- Neue eigene Stadt: zentrale Tramachse mit zwei grosszuegigem Abstand.
-local route=smooth({
- Vector3.new(-1120,0,-720),Vector3.new(-900,0,-720),
- Vector3.new(-650,0,-640),Vector3.new(-420,0,-430),
- Vector3.new(-180,0,-330),Vector3.new(100,0,-350),
- Vector3.new(360,0,-250),Vector3.new(560,0,-40),
- Vector3.new(650,0,230),Vector3.new(590,0,480),
- Vector3.new(390,0,690),Vector3.new(100,0,790),
- Vector3.new(-200,0,760),Vector3.new(-440,0,600),
- Vector3.new(-570,0,350),Vector3.new(-600,0,100)
-},14)
+-- Lighting
+Lighting.ClockTime=14; Lighting.Brightness=2.1; Lighting.GlobalShadows=true
+Lighting.ShadowSoftness=0.35; Lighting.Ambient=col(125,130,132)
+Lighting.OutdoorAmbient=col(164,171,169)
+for _,n in ipairs({"RNV_Atmosphere","RNV_Color"}) do local e=Lighting:FindFirstChild(n); if e then e:Destroy() end end
+local atmosphere=Instance.new("Atmosphere"); atmosphere.Name="RNV_Atmosphere"
+atmosphere.Density=0.18; atmosphere.Offset=0.08; atmosphere.Haze=0.6
+atmosphere.Color=col(208,222,229); atmosphere.Decay=col(128,143,149); atmosphere.Parent=Lighting
+local cc=Instance.new("ColorCorrectionEffect"); cc.Name="RNV_Color"
+cc.Contrast=0.06; cc.Saturation=0.03; cc.TintColor=col(255,249,239); cc.Parent=Lighting
 
--- Strassen mit breiten Gehwegen und Bordsteinen.
+-- Grosses, zusammenhaengendes Stadtgebiet statt vier kleiner Bodenplatten.
+block(map,"Stadtgebiet_Lindenhafen",Vector3.new(4200,3,3600),Vector3.new(0,-1.7,0),Enum.Material.Grass,C.grass,true)
+
+-- Offene Linie: lange Gerade, sanfte Kurven, weitere Gerade und ein zweiter Bogen.
+-- Kein geschlossener Ring. Enden bleiben fuer spaetere Erweiterungen offen.
+local route=smooth({
+ Vector3.new(-1645,0,-1000),Vector3.new(-1150,0,-1000),
+ Vector3.new(-650,0,-1000),Vector3.new(-300,0,-920),
+ Vector3.new(0,0,-700),Vector3.new(220,0,-430),
+ Vector3.new(300,0,-100),Vector3.new(300,0,350),
+ Vector3.new(420,0,700),Vector3.new(720,0,930),
+ Vector3.new(1150,0,980),Vector3.new(1650,0,980)
+},18)
+local total=pathLength(route)
+
+-- Strassen parallel zur Tramtrasse: eigene Fahrbahnen, keine Asphaltdecke ueber den Gleisen.
 local roads=folder("Strassen_und_Kreuzungen")
 local function road(points,width,name)
- local m=model(name,roads); local l1=offset(points,-width/2-0.7); local r1=offset(points,width/2+0.7)
- local l2=offset(points,-width/2-5.0); local r2=offset(points,width/2+5.0)
+ local m=model(name,roads)
+ local leftC=offset(points,-width/2-0.8); local rightC=offset(points,width/2+0.8)
+ local leftS=offset(points,-width/2-5.2); local rightS=offset(points,width/2+5.2)
  for i=1,#points-1 do
-  segment(m,"Asphalt",width,0.3,points[i],points[i+1],0.03,Enum.Material.Asphalt,C.asphalt,true)
-  segment(m,"Bordstein",1,0.3,l1[i],l1[i+1],0.16,Enum.Material.Concrete,C.curb,true)
-  segment(m,"Bordstein",1,0.3,r1[i],r1[i+1],0.16,Enum.Material.Concrete,C.curb,true)
-  segment(m,"Gehweg",8,0.22,l2[i],l2[i+1],0.12,Enum.Material.Concrete,C.sidewalk,true)
-  segment(m,"Gehweg",8,0.22,r2[i],r2[i+1],0.12,Enum.Material.Concrete,C.sidewalk,true)
+  segment(m,"Fahrbahn",width,0.28,points[i],points[i+1],0.02,Enum.Material.Asphalt,C.asphalt,true)
+  segment(m,"Bordstein",0.8,0.28,leftC[i],leftC[i+1],0.14,Enum.Material.Concrete,C.curb,true)
+  segment(m,"Bordstein",0.8,0.28,rightC[i],rightC[i+1],0.14,Enum.Material.Concrete,C.curb,true)
+  segment(m,"Gehweg",8,0.2,leftS[i],leftS[i+1],0.12,Enum.Material.Concrete,C.sidewalk,true)
+  segment(m,"Gehweg",8,0.2,rightS[i],rightS[i+1],0.12,Enum.Material.Concrete,C.sidewalk,true)
  end
  return m
 end
-road(route,58,"Boulevard_mit_Tramtrasse")
-local roadPaths={
- {Vector3.new(-1120,0,-180),Vector3.new(-850,0,-100),Vector3.new(-570,0,40),Vector3.new(-300,0,150),Vector3.new(0,0,180),Vector3.new(330,0,280),Vector3.new(650,0,470),Vector3.new(950,0,650)},
- {Vector3.new(-900,0,-1050),Vector3.new(-600,0,-980),Vector3.new(-280,0,-900),Vector3.new(50,0,-850),Vector3.new(380,0,-730),Vector3.new(700,0,-530),Vector3.new(1000,0,-260)},
- {Vector3.new(-1150,0,900),Vector3.new(-850,0,950),Vector3.new(-550,0,930),Vector3.new(-250,0,970),Vector3.new(80,0,1050),Vector3.new(420,0,1120),Vector3.new(800,0,1150)},
- {Vector3.new(850,0,-1050),Vector3.new(980,0,-900),Vector3.new(1100,0,-650),Vector3.new(1160,0,-350),Vector3.new(1130,0,-80)}
+road(offset(route,57),23,"Boulevard_Nord")
+road(offset(route,-57),23,"Boulevard_Sued")
+local crossRoads={
+ {Vector3.new(-1050,0,-1370),Vector3.new(-1000,0,-1120),Vector3.new(-980,0,-850),Vector3.new(-900,0,-580)},
+ {Vector3.new(-450,0,-1370),Vector3.new(-420,0,-1110),Vector3.new(-390,0,-850),Vector3.new(-300,0,-600)},
+ {Vector3.new(100,0,-1350),Vector3.new(130,0,-1080),Vector3.new(180,0,-820),Vector3.new(230,0,-570)},
+ {Vector3.new(650,0,-250),Vector3.new(900,0,-180),Vector3.new(1180,0,-100),Vector3.new(1450,0,40)},
+ {Vector3.new(650,0,450),Vector3.new(900,0,500),Vector3.new(1180,0,600),Vector3.new(1500,0,740)},
+ {Vector3.new(-150,0,900),Vector3.new(150,0,1080),Vector3.new(480,0,1190),Vector3.new(850,0,1240)},
+ {Vector3.new(1000,0,1250),Vector3.new(1250,0,1270),Vector3.new(1500,0,1280),Vector3.new(1800,0,1280)}
 }
-for i,nodes in ipairs(roadPaths) do road(smooth(nodes,10),i==3 and 24 or 26,"Quartiersstrasse_"..i) end
+for i,nodes in ipairs(crossRoads) do road(smooth(nodes,12),22,"Quartiersstrasse_"..i) end
 
--- Vier Schienen mit deutlich mehr Abstand: Gleismitten 18 Studs auseinander.
-local trackFolder=model("Doppelgleis_mit_4_Schienen")
+-- Doppelgleis mit grossem Mittenabstand von 18 Studs.
+-- Schwellen quer zur Fahrtrichtung; Schienenkoepfe korrekt auf den Schienenstegen.
+local track=model("Doppelgleis_4_Schienen")
 local centers={-9,9}
-local total=length(route)
 for laneIndex,centre in ipairs(centers) do
- local lane=model(laneIndex==1 and "Gleis_Stadtauswaerts" or "Gleis_Stadteinwaerts",trackFolder)
+ local lane=model(laneIndex==1 and "Gleis_A" or "Gleis_B",track)
  local lanePath=offset(route,centre)
  for i=1,#lanePath-1 do
-  segment(lane,"Gleiswanne",6.2,0.38,lanePath[i],lanePath[i+1],0.32,Enum.Material.Concrete,C.trackbed,true)
+  segment(lane,"Gleisunterbau",6.5,0.38,lanePath[i],lanePath[i+1],0.3,Enum.Material.Concrete,C.bed,true)
  end
- for d=0,total,9 do
+ for d=0,total,8 do
   local p,t,n=atDistance(route,d); p=p+n*centre
-  local cf=CFrame.lookAt(Vector3.new(p.X,0.57,p.Z),Vector3.new(p.X,0.57,p.Z)+t,Vector3.yAxis)
-  part(lane,"Betonschwelle",Vector3.new(5.7,0.22,1.35),cf,Enum.Material.Concrete,C.sleeper,true)
+  local cf=CFrame.lookAt(Vector3.new(p.X,0.58,p.Z),Vector3.new(p.X,0.58,p.Z)+t)
+  part(lane,"Querschwelle",Vector3.new(1.35,0.22,5.9),cf,Enum.Material.Concrete,C.sleeper,true)
  end
  for _,gauge in ipairs({-1.5,1.5}) do
   local rp=offset(route,centre+gauge)
   for i=1,#rp-1 do
-   segment(lane,"Schienensteg",0.38,0.48,rp[i],rp[i+1],0.83,Enum.Material.Metal,C.dark,false)
-   segment(lane,"Schienenkopf",0.62,0.18,rp[i],rp[i+1],1.12,Enum.Material.Metal,C.rail,false)
+   segment(lane,"Schienensteg",0.42,0.48,rp[i],rp[i+1],0.82,Enum.Material.Metal,C.dark,false)
+   segment(lane,"Schienenkopf",0.66,0.2,rp[i],rp[i+1],1.13,Enum.Material.Metal,C.rail,false)
   end
  end
 end
 
--- Oberleitung mit Masten ausserhalb der beiden Gleise, Quertragwerken und Fahrdraht.
-local overhead=model("Oberleitung_komplett")
-for i=5,#route-4,6 do
- local tangent,normal=basis(route,i); local pos=route[i]
- local left=pos-normal*20; local right=pos+normal*20
+-- Depot: Halle direkt an den Streckenanfang angeschlossen, zwei breite Tore.
+local depot=model("Betriebshof")
+block(depot,"Hofplatte",Vector3.new(260,0.35,190),Vector3.new(-1770,0.1,-1000),Enum.Material.Concrete,C.sidewalk,true)
+local hall=model("Wagenhalle",depot)
+block(hall,"Rueckwand",Vector3.new(2,19,100),Vector3.new(-1835,9.5,-1000),Enum.Material.Concrete,col(183,190,188),true)
+block(hall,"Seitenwand_Nord",Vector3.new(125,19,2),Vector3.new(-1772,9.5,-1050),Enum.Material.Concrete,col(183,190,188),true)
+block(hall,"Seitenwand_Sued",Vector3.new(125,19,2),Vector3.new(-1772,9.5,-950),Enum.Material.Concrete,col(183,190,188),true)
+block(hall,"Dach",Vector3.new(130,1.5,106),Vector3.new(-1772,19.5,-1000),Enum.Material.Metal,C.steel,true)
+-- Portalrahmen an der Ostseite, Tore bleiben offen und Gleise laufen hinein.
+for _,z in ipairs({-1045,-1000,-955}) do
+ block(hall,"Torpfosten",Vector3.new(2,15,2),Vector3.new(-1708,7.5,z),Enum.Material.Metal,C.steel,true)
+end
+block(hall,"Torsturz",Vector3.new(2,2,100),Vector3.new(-1708,17,-1000),Enum.Material.Metal,C.steel,true)
+for _,z in ipairs({-1009,-991}) do
+ segment(depot,"Depotanschluss_Bett",6.5,0.35,Vector3.new(-1708,0,z),Vector3.new(-1645,0,z),0.3,Enum.Material.Concrete,C.bed,true)
+ for _,g in ipairs({-1.5,1.5}) do
+  local zz=z+g
+  segment(depot,"Depotanschluss_Schiene",0.65,0.2,Vector3.new(-1708,0,zz),Vector3.new(-1645,0,zz),1.13,Enum.Material.Metal,C.rail,false)
+ end
+end
+-- Spawn ausserhalb der Hallentore
+local spawn=Instance.new("SpawnLocation"); spawn.Name="SpielerSpawn_Betriebshof"
+spawn.Size=Vector3.new(8,1,8); spawn.CFrame=CFrame.new(-1770,1,-1110)
+spawn.Anchored=true; spawn.Neutral=true; spawn.Duration=0
+spawn.Material=Enum.Material.Concrete; spawn.Color=col(83,145,116); spawn.Parent=depot
+
+-- Oberleitung folgt der Strecke; Masten links/rechts und Draht ueber jedem Gleis.
+local overhead=model("Oberleitung")
+for i=4,#route-3,6 do
+ local _,normal=basis(route,i); local p=route[i]
+ local left=p-normal*23; local right=p+normal*23
  for _,q in ipairs({left,right}) do
-  block(overhead,"Mastfuss",Vector3.new(2,0.65,2),Vector3.new(q.X,0.33,q.Z),Enum.Material.Concrete,C.concrete,true)
-  block(overhead,"Stahlmast",Vector3.new(0.75,17.5,0.75),Vector3.new(q.X,9.1,q.Z),Enum.Material.Metal,C.steel,true)
-  block(overhead,"Mastkappe",Vector3.new(1.3,0.5,1.3),Vector3.new(q.X,17.9,q.Z),Enum.Material.Metal,C.dark,false)
+  block(overhead,"Mastfundament",Vector3.new(2,0.65,2),Vector3.new(q.X,0.33,q.Z),Enum.Material.Concrete,C.concrete,true)
+  block(overhead,"Oberleitungsmast",Vector3.new(0.75,17.5,0.75),Vector3.new(q.X,9.1,q.Z),Enum.Material.Metal,C.steel,true)
  end
  segment(overhead,"Quertragwerk",0.45,0.45,left,right,16.8,Enum.Material.Metal,C.steel,false)
- for _,centre in ipairs(centers) do
-  local wp=pos+normal*centre
-  block(overhead,"Isolator",Vector3.new(0.7,0.65,0.7),Vector3.new(wp.X,16.35,wp.Z),Enum.Material.SmoothPlastic,C.cream,false)
- end
 end
 for _,centre in ipairs(centers) do
- local wp=offset(route,centre)
- for i=1,#wp-1 do
-  segment(overhead,"Kupferfahrdraht",0.18,0.18,wp[i],wp[i+1],15.15,Enum.Material.Metal,C.wire,false)
-  segment(overhead,"Tragseil",0.12,0.12,wp[i],wp[i+1],16.7,Enum.Material.Metal,C.rail,false)
- end
- for i=3,#wp-3,4 do
-  block(overhead,"Drahtanhaenger",Vector3.new(0.1,1.5,0.1),Vector3.new(wp[i].X,15.95,wp[i].Z),Enum.Material.Metal,C.wire,false)
+ local wirePath=offset(route,centre)
+ for i=1,#wirePath-1 do
+  segment(overhead,"Fahrdraht",0.18,0.18,wirePath[i],wirePath[i+1],15.2,Enum.Material.Metal,C.wire,false)
  end
 end
 
--- Drei grosse Haltestellen mit Bahnsteigen, Dächern, Sitzbänken und Licht.
+-- Haltestellen: Bahnsteige liegen parallel zum Gleis und seitlich ausserhalb der Gleise.
 local stations=model("Haltestellen")
 local function station(name,distance)
- local p,t,n=atDistance(route,distance)
- local s=model(name,stations)
+ local p,t,n=atDistance(route,distance); local s=model(name,stations)
  for _,side in ipairs({-1,1}) do
-  local centre=side*19
-  local pos=p+n*centre
-  local cf=CFrame.lookAt(Vector3.new(pos.X,0.45,pos.Z),Vector3.new(pos.X,0.45,pos.Z)+t,Vector3.yAxis)
-  part(s,"Bahnsteig",Vector3.new(76,0.8,7.5),cf,Enum.Material.Concrete,C.sidewalk,true)
-  for _,endOffset in ipairs({-34,34}) do
-   local e=pos+t*endOffset+n*(side*1.5)
-   block(s,"Bahnsteigkante",Vector3.new(1,0.22,7.8),Vector3.new(e.X,0.98,e.Z),Enum.Material.SmoothPlastic,color(229,190,76),false)
-  end
-  -- Dach auf vier schlanken Stuetzen
-  for _,along in ipairs({-24,24}) do
+  local centre=side*20; local pos=p+n*centre
+  local platformCF=CFrame.lookAt(Vector3.new(pos.X,0.45,pos.Z),Vector3.new(pos.X,0.45,pos.Z)+t)
+  part(s,"Bahnsteig",Vector3.new(7.5,0.8,76),platformCF,Enum.Material.Concrete,C.sidewalk,true)
+  local edgePos=pos+n*(side*3.25)
+  local edgeCF=CFrame.lookAt(Vector3.new(edgePos.X,0.98,edgePos.Z),Vector3.new(edgePos.X,0.98,edgePos.Z)+t)
+  part(s,"Taktile_Bahnsteigkante",Vector3.new(0.55,0.16,74),edgeCF,Enum.Material.SmoothPlastic,C.yellow,false)
+  -- Shelter has a narrow footprint and a long roof aligned with the platform.
+  for _,along in ipairs({-23,23}) do
    for _,across in ipairs({-2.3,2.3}) do
-    local q=pos+t*along+n*(side*across)
+    local q=pos+t*along+n*across
     block(s,"Dachstuetze",Vector3.new(0.32,4.2,0.32),Vector3.new(q.X,3.0,q.Z),Enum.Material.Metal,C.steel,true)
    end
   end
-  local roofPos=pos+n*(side*0.0)
-  local roofCf=CFrame.lookAt(Vector3.new(roofPos.X,5.25,roofPos.Z),Vector3.new(roofPos.X,5.25,roofPos.Z)+t,Vector3.yAxis)
-  part(s,"Haltestellendach",Vector3.new(56,0.45,6.2),roofCf,Enum.Material.Metal,C.steel,true)
-  -- Glaswindschutz
-  for _,along in ipairs({-19,19}) do
-   local q=pos+t*along+n*(side*1.8)
-   local glassCf=CFrame.lookAt(Vector3.new(q.X,2.2,q.Z),Vector3.new(q.X,2.2,q.Z)+t,Vector3.yAxis)
-   part(s,"Glaswindschutz",Vector3.new(0.18,2.6,3.8),glassCf,Enum.Material.Glass,C.glass,false,0.18)
+  local roofCF=CFrame.lookAt(Vector3.new(pos.X,5.25,pos.Z),Vector3.new(pos.X,5.25,pos.Z)+t)
+  part(s,"Haltestellendach",Vector3.new(6.4,0.45,55),roofCF,Enum.Material.Metal,C.steel,true)
+  for _,along in ipairs({-18,18}) do
+   local q=pos+t*along+n*2.6
+   local glassCF=CFrame.lookAt(Vector3.new(q.X,2.1,q.Z),Vector3.new(q.X,2.1,q.Z)+t)
+   part(s,"Glaswand",Vector3.new(0.18,2.6,3.5),glassCF,Enum.Material.Glass,C.glass,false,0.16)
   end
-  local benchPos=pos+t*8+n*(side*1.5)
-  block(s,"Sitzbank",Vector3.new(9,0.45,1.2),Vector3.new(benchPos.X,1.35,benchPos.Z),Enum.Material.Wood,C.wood,true)
-  for _,dx in ipairs({-3.5,3.5}) do
-   block(s,"Bankfuss",Vector3.new(0.35,1.2,0.35),Vector3.new(benchPos.X+dx,0.8,benchPos.Z),Enum.Material.Metal,C.steel,true)
-  end
-  local bin=pos+t*(-27)+n*(side*2.2)
-  block(s,"Abfallbehaelter",Vector3.new(1.1,1.7,1.1),Vector3.new(bin.X,1.3,bin.Z),Enum.Material.Metal,C.steel,true)
+  local bench=pos+t*7+n*(side*1.4)
+  block(s,"Sitzbank",Vector3.new(1.1,0.45,8),Vector3.new(bench.X,1.3,bench.Z),Enum.Material.Wood,C.wood,true)
+  local bin=pos+t*(-28)+n*(side*2.1)
+  block(s,"Abfallbehaelter",Vector3.new(1.1,1.6,1.1),Vector3.new(bin.X,1.2,bin.Z),Enum.Material.Metal,C.steel,true)
   local pole=pos+t*(-31)+n*(side*2.5)
-  block(s,"Haltestellenmast",Vector3.new(0.35,5,0.35),Vector3.new(pole.X,3,pole.Z),Enum.Material.Metal,C.steel,true)
-  block(s,"Haltestellenanzeige",Vector3.new(0.5,2.0,2.5),Vector3.new(pole.X,5.9,pole.Z),Enum.Material.SmoothPlastic,color(36,47,53),false)
+  block(s,"Anzeigemast",Vector3.new(0.35,4.8,0.35),Vector3.new(pole.X,2.8,pole.Z),Enum.Material.Metal,C.steel,true)
+  block(s,"Anzeige_ohne_Text",Vector3.new(2.2,1.4,0.35),Vector3.new(pole.X,5.2,pole.Z),Enum.Material.SmoothPlastic,C.dark,false)
  end
 end
-station("Haltestelle_Parkallee",total*0.23)
-station("Haltestelle_Altstadt",total*0.49)
-station("Haltestelle_Hafenforum",total*0.76)
+station("Haltestelle_Westtor",total*0.18)
+station("Haltestelle_Stadtmitte",total*0.48)
+station("Haltestelle_Hafenpark",total*0.78)
 
--- Gebaeude: individuell gestaltete Fassaden, Fenster, Geschaeftsfronten, Daecher.
-local buildings=model("Stadtgebaeude_komplett_neu")
+-- Stadtgebaeude. Die Reihen folgen den Boulevardstrassen und stehen sichtbar naeher an der Tram.
+local buildings=model("Stadtgebaeude")
 local rng=Random.new(191126)
-local facades={color(218,202,174),color(190,190,179),color(185,132,105),color(208,216,211),color(224,216,195),color(164,181,181),color(204,184,162)}
-local roofs={color(63,67,70),color(93,74,63),color(109,88,72),color(75,84,87)}
+local facades={col(218,202,174),col(190,190,179),col(185,132,105),col(208,216,211),col(224,216,195),col(164,181,181),col(204,184,162)}
+local roofs={col(63,67,70),col(93,74,63),col(109,88,72),col(75,84,87)}
 local function house(name,x,z,w,d,floors,rot,kind)
  local m=model(name,buildings); local cf=CFrame.new(x,0,z)*CFrame.Angles(0,math.rad(rot),0)
  local h=floors*8.5; local facade=facades[rng:NextInteger(1,#facades)]
- local shop=kind=="shop"; local apartment=kind=="apartment"
  part(m,"Fassade",Vector3.new(w,h,d),cf*CFrame.new(0,h/2,0),Enum.Material.SmoothPlastic,facade,true)
  part(m,"Sockel",Vector3.new(w+0.8,1,d+0.8),cf*CFrame.new(0,0.55,0),Enum.Material.Concrete,C.concrete,true)
  part(m,"Dach",Vector3.new(w+2,1.1,d+2),cf*CFrame.new(0,h+0.5,0),Enum.Material.Slate,roofs[rng:NextInteger(1,#roofs)],true)
- -- Fenster mit Rahmen und Fensterbank
- local rows=floors
- local count=math.max(2,math.floor(w/10))
- for fy=1,rows do
+ local count=math.max(2,math.floor(w/11))
+ for fy=1,floors do
   for wx=1,count do
    local xx=-w/2+wx*w/(count+1); local yy=2.5+(fy-1)*8.5
-   local ww=shop and 6.2 or 3.6; local wh=shop and 5.2 or 3.7
-   part(m,"Fensterglas",Vector3.new(ww,wh,0.24),cf*CFrame.new(xx,yy,-d/2-0.13),Enum.Material.Glass,C.glass,false,0.1)
-   part(m,"Fensterbank",Vector3.new(ww+0.5,0.22,0.45),cf*CFrame.new(xx,yy-wh/2-0.1,-d/2-0.18),Enum.Material.Concrete,C.white,false)
-   part(m,"Fenstersturz",Vector3.new(ww+0.35,0.18,0.35),cf*CFrame.new(xx,yy+wh/2+0.1,-d/2-0.18),Enum.Material.Concrete,C.white,false)
+   part(m,"Fenster",Vector3.new(3.8,3.8,0.22),cf*CFrame.new(xx,yy,-d/2-0.13),Enum.Material.Glass,C.glass,false,0.08)
+   part(m,"Fensterbank",Vector3.new(4.3,0.2,0.42),cf*CFrame.new(xx,yy-2,-d/2-0.18),Enum.Material.Concrete,C.white,false)
   end
  end
- -- Eingang und Vordach
  part(m,"Eingangstuer",Vector3.new(3.6,6.4,0.35),cf*CFrame.new(0,3.2,-d/2-0.2),Enum.Material.Wood,C.wood,false)
  part(m,"Vordach",Vector3.new(7,0.45,3),cf*CFrame.new(0,6.8,-d/2-1.3),Enum.Material.Metal,C.steel,true)
- if apartment then
+ if kind=="shop" then
+  part(m,"Schaufenster",Vector3.new(w*0.65,4.2,0.3),cf*CFrame.new(0,3.5,-d/2-0.22),Enum.Material.Glass,C.glass,false,0.08)
+  part(m,"Markise",Vector3.new(w*0.75,0.4,2.6),cf*CFrame.new(0,6.1,-d/2-1.3),Enum.Material.SmoothPlastic,col(170,91,73),false)
+ end
+ if kind=="apartment" then
   for fy=1,floors-1 do
    local yy=4.2+(fy-1)*8.5
-   part(m,"Balkonplatte",Vector3.new(6,0.3,1.8),cf*CFrame.new(-w*0.22,yy,-d/2-0.9),Enum.Material.Concrete,C.concrete,true)
+   part(m,"Balkon",Vector3.new(6,0.3,1.8),cf*CFrame.new(-w*0.22,yy,-d/2-0.9),Enum.Material.Concrete,C.concrete,true)
    part(m,"Balkongelaender",Vector3.new(6,1,0.16),cf*CFrame.new(-w*0.22,yy+0.65,-d/2-1.7),Enum.Material.Metal,C.white,false)
   end
- end
- if shop then
-  part(m,"Schaufenster",Vector3.new(w*0.68,4.4,0.3),cf*CFrame.new(0,3.5,-d/2-0.22),Enum.Material.Glass,C.glass,false,0.08)
-  part(m,"Markise",Vector3.new(w*0.78,0.4,2.8),cf*CFrame.new(0,6.1,-d/2-1.3),Enum.Material.Fabric,color(170,91,73),false)
-  part(m,"Ladenschild_ohne_Text",Vector3.new(w*0.72,1.5,0.35),cf*CFrame.new(0,7.7,-d/2-0.3),Enum.Material.SmoothPlastic,color(49,91,108),false)
- end
- if rng:NextNumber()>0.45 then
-  block(m,"Schornstein",Vector3.new(2.2,3.5,2.2),Vector3.new(x+w*0.27,h+2,z+d*0.2),Enum.Material.Brick,color(139,88,70),true)
  end
  return m
 end
 
--- Locker verteilte Stadtquartiere mit Luecken fuer Innenhoefe und Gruen.
-local lots={
- {-1120,420,52,42,2,8,"house"},{-980,455,56,44,3,-8,"apartment"},{-830,420,58,45,3,12,"apartment"},
- {-1120,610,60,46,3,-10,"apartment"},{-960,640,48,40,2,9,"house"},{-800,620,54,44,3,-7,"apartment"},
- {-610,920,56,44,3,8,"apartment"},{-455,950,48,40,2,-9,"house"},{-300,930,58,46,3,11,"apartment"},
- {-120,970,50,42,2,-8,"house"},{60,960,62,48,4,10,"apartment"},{230,920,50,42,2,-11,"house"},
- {760,730,58,46,3,10,"apartment"},{920,760,50,42,2,-8,"house"},{1080,720,60,46,3,12,"apartment"},
- {760,920,52,42,2,-9,"house"},{930,950,58,45,3,8,"apartment"},{1090,930,48,40,2,-10,"house"},
- {-1100,-250,56,44,3,9,"apartment"},{-950,-280,48,40,2,-8,"house"},{-800,-250,60,46,3,12,"apartment"},
- {-1120,-440,50,42,2,-9,"house"},{-960,-470,58,45,3,10,"apartment"},{-800,-450,50,42,2,-12,"house"},
- {-620,-930,58,45,3,9,"apartment"},{-460,-960,50,42,2,-8,"house"},{-300,-930,62,48,4,11,"apartment"},
- {-120,-960,50,42,2,-10,"house"},{80,-940,58,45,3,8,"apartment"},{250,-900,50,42,2,-9,"house"},
- {800,-900,60,48,3,10,"apartment"},{970,-930,52,42,2,-8,"house"},{1130,-900,58,46,3,12,"apartment"},
- {810,-710,50,42,2,-9,"house"},{970,-700,60,46,3,8,"apartment"},{1130,-700,50,42,2,-10,"house"},
- {-1130,80,64,48,3,8,"shop"},{-970,100,62,46,3,-9,"shop"},{-800,70,58,44,3,10,"shop"},
- {820,250,62,48,3,-8,"shop"},{990,260,66,50,3,9,"shop"},{1150,230,58,44,2,-10,"shop"}
-}
-for i,v in ipairs(lots) do house("Haus_"..string.format("%02d",i),v[1],v[2],v[3],v[4],v[5],v[6],v[7]) end
+-- Gebaeudezeilen an beiden Strassenseiten entlang der gesamten Tramachse.
+for sideIndex,side in ipairs({-1,1}) do
+ for d=105,math.floor(total-70),155 do
+  local p,t,n=atDistance(route,d)
+  local q=p+n*(side*91)
+  local width=rng:NextInteger(42,58); local depth=rng:NextInteger(34,46)
+  local kind=(d%3==0) and "shop" or ((d%2==0) and "apartment" or "house")
+  house("Quartierhaus_"..sideIndex.."_"..d,q.X,q.Z,width,depth,rng:NextInteger(2,4),math.deg(math.atan2(-t.Z,t.X)),kind)
+ end
+end
 
--- Markante oeffentliche Gebaeude mit echter Fassadengliederung.
+-- Markante oeffentliche Gebaeude in den Stadtquartieren.
 local function publicBuilding(name,x,z,w,d,h,facade)
  local m=model(name,buildings)
  block(m,"Baukörper",Vector3.new(w,h,d),Vector3.new(x,h/2,z),Enum.Material.Concrete,facade,true)
- block(m,"Dachkante",Vector3.new(w+4,1.6,d+4),Vector3.new(x,h+0.8,z),Enum.Material.Metal,C.steel,true)
- for i=-2,2 do
-  block(m,"Glasfassade",Vector3.new(w/6, h*0.68,0.35),Vector3.new(x+i*w/6,h*0.48,z-d/2-0.22),Enum.Material.Glass,C.glass,false,0.12)
- end
- for i=-1,1 do
-  block(m,"Eingangspfeiler",Vector3.new(1.2,h*0.75,1.2),Vector3.new(x+i*8,h*0.42,z-d/2-1),Enum.Material.Concrete,C.white,true)
- end
+ block(m,"Dachkante",Vector3.new(w+4,1.5,d+4),Vector3.new(x,h+0.75,z),Enum.Material.Metal,C.steel,true)
+ for i=-2,2 do block(m,"Glasfassade",Vector3.new(w/6,h*0.65,0.35),Vector3.new(x+i*w/6,h*0.48,z-d/2-0.22),Enum.Material.Glass,C.glass,false,0.12) end
 end
-publicBuilding("Rathaus", -480,250,110,72,34,color(202,196,178))
-publicBuilding("Stadtbibliothek", 420,900,104,66,27,color(186,199,195))
-publicBuilding("Einkaufszentrum", 1110,470,132,82,30,color(187,195,191))
-publicBuilding("Feuerwache", -1090,820,92,64,24,color(195,190,178))
-publicBuilding("Schule", -430,-700,120,78,25,color(214,204,184))
-publicBuilding("Hafenhalle", 980,-400,118,74,22,color(174,187,186))
+publicBuilding("Rathaus",-650,-480,100,68,32,col(202,196,178))
+publicBuilding("Stadtbibliothek",500,1180,110,72,27,col(186,199,195))
+publicBuilding("Einkaufszentrum",1280,650,132,82,30,col(187,195,191))
+publicBuilding("Feuerwache",-1350,-650,92,64,24,col(195,190,178))
+publicBuilding("Schule",-450,1180,120,78,25,col(214,204,184))
+publicBuilding("Hafenhalle",1450,350,118,74,22,col(174,187,186))
 
--- Baeume, Beete, Laternen, Fahrradstaender und Stadtmobiliar.
-local trees=folder("Strassenbaeume_und_Gruen")
+-- Baeume und Stadtmobiliar auf Gehwegen und in Parks.
+local greenery=folder("Baeume_und_Stadtmobiliar")
 local function tree(x,z,scale)
- local m=model("Stadtbaum",trees)
- block(m,"Stamm",Vector3.new(1.3*scale,6*scale,1.3*scale),Vector3.new(x,3*scale,z),Enum.Material.Wood,color(111,79,55),true)
- ball(m,"Krone_unten",Vector3.new(7*scale,7*scale,7*scale),Vector3.new(x,7*scale,z),Enum.Material.Grass,C.green)
- ball(m,"Krone_oben",Vector3.new(5.5*scale,6*scale,5.5*scale),Vector3.new(x+1,10*scale,z),Enum.Material.Grass,color(83,139,78))
+ local m=model("Stadtbaum",greenery)
+ block(m,"Stamm",Vector3.new(1.2*scale,6*scale,1.2*scale),Vector3.new(x,3*scale,z),Enum.Material.Wood,C.wood,true)
+ local a=block(m,"Baumkrone",Vector3.new(7*scale,7*scale,7*scale),Vector3.new(x,7*scale,z),Enum.Material.Grass,C.green,false); a.Shape=Enum.PartType.Ball
+ local b=block(m,"Kronenspitze",Vector3.new(5.5*scale,6*scale,5.5*scale),Vector3.new(x+1,10*scale,z),Enum.Material.Grass,col(83,139,78),false); b.Shape=Enum.PartType.Ball
 end
-for _,p in ipairs({
- {-1180,350},{-1050,350},{-900,350},{-1160,550},{-1010,570},{-850,560},
- {-650,850},{-500,850},{-340,850},{-160,850},{40,850},{220,820},
- {720,650},{870,650},{1030,650},{1180,650},{760,850},{1100,850},
- {-1160,-180},{-1000,-180},{-840,-180},{-1120,-600},{-950,-600},{-780,-600},
- {-600,-850},{-430,-850},{-260,-850},{-70,-850},{130,-830},{300,-820},
- {820,-1050},{1000,-1050},{1160,-1050},{850,-600},{1030,-600}
-}) do tree(p[1],p[2],1) end
-
-local function streetLamp(x,z)
- local m=model("Strassenlaterne",trees)
- block(m,"Mast",Vector3.new(0.38,9,0.38),Vector3.new(x,4.5,z),Enum.Material.Metal,C.steel,true)
- block(m,"Ausleger",Vector3.new(2.4,0.25,0.25),Vector3.new(x+1,8.7,z),Enum.Material.Metal,C.steel,false)
- local l=block(m,"Leuchte",Vector3.new(1.2,0.35,0.65),Vector3.new(x+2,8.5,z),Enum.Material.SmoothPlastic,C.white,false)
- local light=Instance.new("PointLight"); light.Brightness=0.45; light.Range=17; light.Color=color(255,231,185); light.Parent=l
+for sideIndex,side in ipairs({-1,1}) do
+ for d=70,math.floor(total-40),90 do
+  local p,t,n=atDistance(route,d)
+  local q=p+n*(side*43)
+  tree(q.X,q.Z,0.9)
+ end
 end
-for _,p in ipairs({{-1100,280},{-900,280},{-650,280},{-300,280},{100,260},{480,380},{700,600},{950,600},{-1080,-100},{-800,-100},{-500,-780},{-180,-780},{250,-720},{800,-600},{1100,-600}}) do streetLamp(p[1],p[2]) end
-
--- Kleine Plaetze und Querungen, ohne Texttafeln oder schwebende Beschriftungen.
-local squares=model("Stadtplaetze_und_Details")
-block(squares,"Altstadtplatz",Vector3.new(150,0.28,110),Vector3.new(-480,130,0),Enum.Material.Cobblestone,color(155,153,143),false)
-block(squares,"Platzbeet_1",Vector3.new(18,1.1,12),Vector3.new(-535,0.7,35),Enum.Material.Grass,C.green,true)
-block(squares,"Platzbeet_2",Vector3.new(18,1.1,12),Vector3.new(-425,0.7,35),Enum.Material.Grass,C.green,true)
-for _,x in ipairs({-550,-520,-450,-420}) do tree(x,70,0.8) end
-for _,z in ipairs({-540,-520,-500,-480}) do
- block(squares,"Fahrradstaender",Vector3.new(0.25,1.3,4),Vector3.new(-450,0.7,z),Enum.Material.Metal,C.steel,false)
+local function lamp(x,z)
+ local m=model("Strassenlaterne",greenery)
+ block(m,"Mast",Vector3.new(0.38,8.5,0.38),Vector3.new(x,4.25,z),Enum.Material.Metal,C.steel,true)
+ block(m,"Ausleger",Vector3.new(2.2,0.25,0.25),Vector3.new(x+0.9,8.2,z),Enum.Material.Metal,C.steel,false)
+ local l=block(m,"Leuchte",Vector3.new(1.1,0.35,0.65),Vector3.new(x+1.8,8,z),Enum.Material.SmoothPlastic,C.white,false)
+ local light=Instance.new("PointLight"); light.Brightness=0.4; light.Range=16; light.Color=col(255,231,185); light.Parent=l
+end
+for sideIndex,side in ipairs({-1,1}) do
+ for d=40,math.floor(total-20),135 do
+  local p,t,n=atDistance(route,d); local q=p+n*(side*48); lamp(q.X,q.Z)
+ end
 end
 
--- Betriebshof mit zwei Einfahrtsgleisen und Hallengebaeude am westlichen Kartenrand.
-local depot=model("Betriebshof")
-block(depot,"Hofplatte",Vector3.new(250,0.35,190),Vector3.new(-1190,0.12,-920),Enum.Material.Concrete,C.sidewalk,true)
-local hall=model("Wagenhalle",depot)
-block(hall,"Rueckwand",Vector3.new(110,18,2),Vector3.new(-1270,9,-1030),Enum.Material.Concrete,color(181,190,188),true)
-block(hall,"Seitenwand_A",Vector3.new(2,18,100),Vector3.new(-1325,9,-980),Enum.Material.Concrete,color(181,190,188),true)
-block(hall,"Seitenwand_B",Vector3.new(2,18,100),Vector3.new(-1215,9,-980),Enum.Material.Concrete,color(181,190,188),true)
-block(hall,"Dach",Vector3.new(116,1.5,108),Vector3.new(-1270,18.5,-980),Enum.Material.Metal,C.steel,true)
-for _,z in ipairs({-1004,-980,-956}) do
- block(hall,"Torrahmen",Vector3.new(1.2,14,1.2),Vector3.new(-1213,7,z),Enum.Material.Metal,C.steel,true)
-end
-for _,x in ipairs({-1300,-1270,-1240}) do
- block(hall,"Hallenlicht",Vector3.new(3,0.3,3),Vector3.new(x,17.5,-980),Enum.Material.Neon,color(255,239,196),false)
-end
+-- Park mit Teich im noerdlichen Stadtteil.
+local park=folder("Lindenpark")
+block(park,"Parkwiese",Vector3.new(390,0.25,240),Vector3.new(650,0.08,1450),Enum.Material.Grass,C.grass2,false)
+block(park,"Teich",Vector3.new(150,0.4,76),Vector3.new(650,0.2,1450),Enum.Material.Glass,col(62,139,157),false)
+block(park,"Uferweg",Vector3.new(210,0.25,10),Vector3.new(650,0.28,1495),Enum.Material.Concrete,C.sidewalk,false)
+for _,p in ipairs({{480,1360},{560,1370},{750,1360},{830,1430},{500,1530},{780,1540}}) do tree(p[1],p[2],1.1) end
 
--- Spawn ausserhalb der Gleise.
-local spawn=Instance.new("SpawnLocation"); spawn.Name="SpielerSpawn_Betriebshof"
-spawn.Size=Vector3.new(8,1,8); spawn.CFrame=CFrame.new(-1150,1,-1080)
-spawn.Anchored=true; spawn.Neutral=true; spawn.Duration=0
-spawn.Material=Enum.Material.Concrete; spawn.Color=color(83,145,116); spawn.Parent=depot
-
-print("[LINDENHAFEN V12] Neue Stadtkarte wurde aufgebaut.")
-print("[LINDENHAFEN V12] Gleismittenabstand 18 Studs; vier Schienen mit deutlich breiterem Zwischenraum.")
-print("[LINDENHAFEN V12] Drei grosse Haltestellen, Oberleitung, Strassen, Parks und neu gestaltete Gebaeude.")
-print("[LINDENHAFEN V12] Keine schwebenden Bauplatz-/Haltestellen-Beschriftungen.")
-print("[LINDENHAFEN V12] Alle Stadtobjekte liegen einzeln editierbar unter Workspace > RNV_Mannheim_Map.")
+print("[LINDENHAFEN V13] Neue offene Tramstrecke und groessere Stadt erstellt.")
+print("[LINDENHAFEN V13] Lange Geraden, mehrere Kurven, kein geschlossener Ring.")
+print("[LINDENHAFEN V13] Bahnsteige parallel zur Strecke; Strassen neben statt ueber den Gleisen.")
+print("[LINDENHAFEN V13] Depot mit zwei Toren am Streckenanfang.")
+print("[LINDENHAFEN V13] Alle Stadtteile sind unter Workspace > RNV_Mannheim_Map editierbar.")
