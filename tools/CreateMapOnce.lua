@@ -346,64 +346,54 @@ for _,centre in ipairs(centers) do
  end
 end
 
--- Haltestellen: Bahnsteige liegen parallel zum Gleis und seitlich ausserhalb der Gleise.
+-- Haltestellen V19: breitere Bahnsteige, korrekt ausgerichtete Wartehallen und freie Gleiszone.
 local stations=model("Haltestellen")
+local function oriented(p,n,size,center,along,mat,color,collide,trans)
+ return part(p,n,size,CFrame.lookAt(center,center+along),mat,color,collide,trans)
+end
 local function station(name,distance)
- local p,t,n=atDistance(route,distance); local s=model(name,stations)
+ local p,t,n=atDistance(route,distance)
+ local s=model(name,stations)
  for _,side in ipairs({-1,1}) do
-  local centre=side*20; local pos=p+n*centre
-  local platformCF=CFrame.lookAt(Vector3.new(pos.X,0.45,pos.Z),Vector3.new(pos.X,0.45,pos.Z)+t)
-  part(s,"Bahnsteig",Vector3.new(10,1,100),platformCF,Enum.Material.Concrete,C.sidewalk,true)
-  -- Kontraststreifen und taktile Leitfelder auf dem Bahnsteig.
-  local tactileCF=CFrame.lookAt(Vector3.new(pos.X,1.03,pos.Z),Vector3.new(pos.X,1.03,pos.Z)+t)
-  part(s,"Leitstreifen",Vector3.new(0.65,0.12,94),tactileCF,Enum.Material.SmoothPlastic,C.yellow,false)
-  for _,along in ipairs({-38,-30,-22,22,30,38}) do
-   local q=pos+t*along-n*(side*3.5)
-   block(s,"Aufmerksamkeitsfeld",Vector3.new(2.2,0.13,2.2),Vector3.new(q.X,1.08,q.Z),Enum.Material.SmoothPlastic,C.yellow,false)
+  local pos=p+n*(side*22)
+  oriented(s,"Bahnsteig",Vector3.new(13,1.1,112),Vector3.new(pos.X,0.45,pos.Z),t,Enum.Material.Concrete,C.sidewalk,true)
+  local edge=pos-n*(side*6.05)
+  oriented(s,"Taktile_Bahnsteigkante",Vector3.new(0.72,0.14,108),Vector3.new(edge.X,1.02,edge.Z),t,Enum.Material.SmoothPlastic,C.yellow,false)
+  local guide=pos+n*(side*5)
+  oriented(s,"Leitstreifen",Vector3.new(0.42,0.1,94),Vector3.new(guide.X,1.02,guide.Z),t,Enum.Material.SmoothPlastic,C.yellow,false)
+  for _,along in ipairs({-48,-40,40,48}) do
+   local q=pos+t*along-n*(side*5.4)
+   oriented(s,"Aufmerksamkeitsfeld",Vector3.new(2.2,0.13,1.6),Vector3.new(q.X,1.04,q.Z),t,Enum.Material.SmoothPlastic,C.yellow,false)
   end
-  local edgePos=pos-n*(side*3.25)
-  local edgeCF=CFrame.lookAt(Vector3.new(edgePos.X,0.98,edgePos.Z),Vector3.new(edgePos.X,0.98,edgePos.Z)+t)
-  part(s,"Taktile_Bahnsteigkante",Vector3.new(0.55,0.16,74),edgeCF,Enum.Material.SmoothPlastic,C.yellow,false)
-  -- Shelter has a narrow footprint and a long roof aligned with the platform.
-  for _,along in ipairs({-23,23}) do
-   for _,across in ipairs({-2.3,2.3}) do
-    local q=pos+t*along+n*across
-    block(s,"Dachstuetze",Vector3.new(0.32,4.2,0.32),Vector3.new(q.X,3.0,q.Z),Enum.Material.Metal,C.steel,true)
+  local shelter=pos+n*(side*1.1)
+  for _,along in ipairs({-25,25}) do
+   for _,across in ipairs({-4.1,4.1}) do
+    local q=shelter+t*along+n*across
+    block(s,"Dachstuetze",Vector3.new(0.38,4,0.38),Vector3.new(q.X,3,q.Z),Enum.Material.Metal,C.steel,true)
    end
   end
-  local roofCF=CFrame.lookAt(Vector3.new(pos.X,5.25,pos.Z),Vector3.new(pos.X,5.25,pos.Z)+t)
-  part(s,"Haltestellendach",Vector3.new(8.2,0.65,64),roofCF,Enum.Material.Metal,C.steel,true)
-  -- Rueckwand, Sitzbank und Fahrgastinformation unter dem Dach.
-  local backPos=pos+n*(side*3.2)
-  local backCF=CFrame.lookAt(Vector3.new(backPos.X,2.4,backPos.Z),Vector3.new(backPos.X,2.4,backPos.Z)+t)
-  part(s,"Glas_Rueckwand",Vector3.new(0.18,3.1,48),backCF,Enum.Material.Glass,C.glass,false,0.2)
-  local infoPos=pos+t*(-7)+n*(side*1.4)
-  local info=block(s,"Fahrplanvitrine",Vector3.new(3.2,4.2,0.5),Vector3.new(infoPos.X,2.8,infoPos.Z),Enum.Material.Metal,C.steel,true)
-  block(s,"Fahrplanfenster",Vector3.new(2.5,2.7,0.16),Vector3.new(infoPos.X,3.0,infoPos.Z-0.3),Enum.Material.Glass,C.white,false)
-  block(s,"Sitzbank_Sitzflaeche",Vector3.new(1.2,0.4,12),Vector3.new(pos.X,1.55,pos.Z),Enum.Material.Wood,C.wood,true)
-  block(s,"Sitzbank_Rueckenlehne",Vector3.new(0.35,1.5,12),Vector3.new(pos.X,2.25,pos.Z+1.8),Enum.Material.Wood,C.wood,true)
-  local clock=block(s,"Stationsuhr",Vector3.new(1.8,1.8,0.4),Vector3.new(p.X,7.3,p.Z),Enum.Material.SmoothPlastic,C.white,false)
-  local clockFace=Instance.new("Decal"); clockFace.Name="Uhrblatt"; clockFace.Face=Enum.NormalId.Front; clockFace.Parent=clock
-  for _,along in ipairs({-18,18}) do
-   local q=pos+t*along+n*2.6
-   local glassCF=CFrame.lookAt(Vector3.new(q.X,2.1,q.Z),Vector3.new(q.X,2.1,q.Z)+t)
-   part(s,"Glaswand",Vector3.new(0.18,2.6,3.5),glassCF,Enum.Material.Glass,C.glass,false,0.16)
-  end
-  local bench=pos+t*7+n*(side*1.4)
-  block(s,"Sitzbank",Vector3.new(1.1,0.45,8),Vector3.new(bench.X,1.3,bench.Z),Enum.Material.Wood,C.wood,true)
-  local bin=pos+t*(-28)+n*(side*2.1)
-  block(s,"Abfallbehaelter",Vector3.new(1.1,1.6,1.1),Vector3.new(bin.X,1.2,bin.Z),Enum.Material.Metal,C.steel,true)
-  local pole=pos+t*(-31)+n*(side*2.5)
-  block(s,"Anzeigemast",Vector3.new(0.35,4.8,0.35),Vector3.new(pole.X,2.8,pole.Z),Enum.Material.Metal,C.steel,true)
-  block(s,"Anzeige_ohne_Text",Vector3.new(2.2,1.4,0.35),Vector3.new(pole.X,5.2,pole.Z),Enum.Material.SmoothPlastic,C.dark,false)
+  oriented(s,"Haltestellendach",Vector3.new(9.2,0.7,58),Vector3.new(shelter.X,5.1,shelter.Z),t,Enum.Material.Metal,C.steel,true)
+  local back=shelter+n*(side*4)
+  oriented(s,"Glas_Rueckwand",Vector3.new(0.18,3,48),Vector3.new(back.X,2.45,back.Z),t,Enum.Material.Glass,C.glass,false,0.18)
+  local bench=shelter+t*3
+  oriented(s,"Sitzbank",Vector3.new(1.5,0.38,10),Vector3.new(bench.X,1.42,bench.Z),t,Enum.Material.Wood,C.wood,true)
+  local info=pos+t*(-39)+n*(side*4.1)
+  block(s,"Fahrplanmast",Vector3.new(0.45,4.5,0.45),Vector3.new(info.X,3.2,info.Z),Enum.Material.Metal,C.steel,true)
+  oriented(s,"Fahrplanvitrine",Vector3.new(2.6,3,0.28),Vector3.new(info.X,4.6,info.Z),t,Enum.Material.Metal,C.dark,false)
+  local bin=pos+t*39+n*(side*4.2)
+  block(s,"Abfallbehaelter",Vector3.new(1.2,1.6,1.2),Vector3.new(bin.X,1.35,bin.Z),Enum.Material.Metal,C.steel,true)
+  local pole=pos+t*(-45)+n*(side*4.4)
+  block(s,"Anzeigemast",Vector3.new(0.4,4.5,0.4),Vector3.new(pole.X,3.2,pole.Z),Enum.Material.Metal,C.steel,true)
+  oriented(s,"Digitale_Anzeige",Vector3.new(2.8,1.6,0.35),Vector3.new(pole.X,5.8,pole.Z),t,Enum.Material.SmoothPlastic,C.dark,false)
  end
 end
 station("Haltestelle_Westtor",total*0.18)
 station("Haltestelle_Stadtmitte",total*0.48)
 station("Haltestelle_Hafenpark",total*0.62)
-station("Haltestelle_Landbahnhof",total*0.91)
-station("Endhaltestelle_Neustadt",total*0.94)
--- Stadtgebaeude. Die Reihen folgen den Boulevardstrassen und stehen sichtbar naeher an der Tram.
+station("Haltestelle_Landbahnhof",total*0.79)
+station("Endhaltestelle_Neustadt",total*0.89)
+
+-- Stadtgebaeude. Die Reihen folgen den Boulevardstrassen-- Stadtgebaeude. Die Reihen folgen den Boulevardstrassen und stehen sichtbar naeher an der Tram.
 local buildings=model("Stadtgebaeude")
 local rng=Random.new(191126)
 local facades={col(218,202,174),col(190,190,179),col(185,132,105),col(208,216,211),col(224,216,195),col(164,181,181),col(204,184,162)}
