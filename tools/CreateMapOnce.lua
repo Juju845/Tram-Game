@@ -460,11 +460,6 @@ for i=1,9 do
  crown.Shape=Enum.PartType.Ball
 end
 
--- Kleine Platzbeleuchtung und Baumbestand der zweiten Stadt.
-for _,pos in ipairs({{3150,420},{3450,420},{3150,650},{3450,650}}) do
- tree(pos[1],pos[2],1.15)
-end
-
 -- Fest abgestellte, selbstgebaute Autos am Strassenrand (statisch, keine Bewegung).
 local parkedCars=folder("Statische_Autos")
 local carColors={col(180,55,48),col(55,91,142),col(210,193,145),col(65,105,76),col(65,66,70),col(220,220,210)}
@@ -498,6 +493,10 @@ local function tree(x,z,scale)
  block(m,"Stamm",Vector3.new(1.2*scale,6*scale,1.2*scale),Vector3.new(x,3*scale,z),Enum.Material.Wood,C.wood,true)
  local a=block(m,"Baumkrone",Vector3.new(7*scale,7*scale,7*scale),Vector3.new(x,7*scale,z),Enum.Material.Grass,C.green,false); a.Shape=Enum.PartType.Ball
  local b=block(m,"Kronenspitze",Vector3.new(5.5*scale,6*scale,5.5*scale),Vector3.new(x+1,10*scale,z),Enum.Material.Grass,col(83,139,78),false); b.Shape=Enum.PartType.Ball
+end
+-- Baumbestand am Marktplatz der zweiten Stadt.
+for _,pos in ipairs({{3150,420},{3450,420},{3150,650},{3450,650}}) do
+ tree(pos[1],pos[2],1.15)
 end
 for sideIndex,side in ipairs({-1,1}) do
  for d=70,math.floor(total-40),90 do
