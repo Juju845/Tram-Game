@@ -386,16 +386,36 @@ local function house(name,x,z,w,d,floors,rot,kind)
  part(m,"Fassade",Vector3.new(w,h,d),cf*CFrame.new(0,h/2,0),Enum.Material.SmoothPlastic,facade,true)
  part(m,"Sockel",Vector3.new(w+0.8,1,d+0.8),cf*CFrame.new(0,0.55,0),Enum.Material.Concrete,C.concrete,true)
  part(m,"Dach",Vector3.new(w+2,1.1,d+2),cf*CFrame.new(0,h+0.5,0),Enum.Material.Slate,roofs[rng:NextInteger(1,#roofs)],true)
+ -- Ausgearbeitete Dachkante und Fassadengliederung statt glatter Quader.
+ part(m,"Dachgesims_Vorne",Vector3.new(w+2.8,0.65,0.8),cf*CFrame.new(0,h-0.2,-d/2-0.25),Enum.Material.Concrete,C.white,true)
+ part(m,"Dachgesims_Hinten",Vector3.new(w+2.8,0.65,0.8),cf*CFrame.new(0,h-0.2,d/2+0.25),Enum.Material.Concrete,C.white,true)
+ for _,xEdge in ipairs({-w/2+0.8,w/2-0.8}) do
+  part(m,"Fassadenpilaster",Vector3.new(1.2,h-1,0.65),cf*CFrame.new(xEdge,h/2,-d/2-0.18),Enum.Material.Concrete,C.white,false)
+ end
+ for fy=1,floors-1 do
+  part(m,"Stockwerksgesims",Vector3.new(w+1.2,0.35,0.55),cf*CFrame.new(0,fy*8.5,-d/2-0.2),Enum.Material.Concrete,C.white,false)
+ end
  local count=math.max(2,math.floor(w/11))
  for fy=1,floors do
   for wx=1,count do
    local xx=-w/2+wx*w/(count+1); local yy=2.5+(fy-1)*8.5
-   part(m,"Fenster",Vector3.new(3.8,3.8,0.22),cf*CFrame.new(xx,yy,-d/2-0.13),Enum.Material.Glass,C.glass,false,0.08)
-   part(m,"Fensterbank",Vector3.new(4.3,0.2,0.42),cf*CFrame.new(xx,yy-2,-d/2-0.18),Enum.Material.Concrete,C.white,false)
+   part(m,"Fensterrahmen",Vector3.new(4.5,4.5,0.38),cf*CFrame.new(xx,yy,-d/2-0.18),Enum.Material.Concrete,C.white,false)
+   part(m,"Fenster",Vector3.new(3.8,3.8,0.22),cf*CFrame.new(xx,yy,-d/2-0.4),Enum.Material.Glass,C.glass,false,0.08)
+   part(m,"Fensterkreuz",Vector3.new(0.16,3.8,0.12),cf*CFrame.new(xx,yy,-d/2-0.54),Enum.Material.Metal,C.white,false)
+   part(m,"Fensterbank",Vector3.new(4.8,0.25,0.65),cf*CFrame.new(xx,yy-2.15,-d/2-0.42),Enum.Material.Concrete,C.white,false)
   end
  end
  part(m,"Eingangstuer",Vector3.new(3.6,6.4,0.35),cf*CFrame.new(0,3.2,-d/2-0.2),Enum.Material.Wood,C.wood,false)
  part(m,"Vordach",Vector3.new(7,0.45,3),cf*CFrame.new(0,6.8,-d/2-1.3),Enum.Material.Metal,C.steel,true)
+ part(m,"Eingangsstufe",Vector3.new(5.5,0.35,2.2),cf*CFrame.new(0,0.22,-d/2-1.3),Enum.Material.Concrete,C.sidewalk,true)
+ -- Seitenfenster beleben die Gebaeude auch aus schraegem Blickwinkel.
+ for _,zSide in ipairs({-d/2-0.2,d/2+0.2}) do
+  for fy=1,floors do
+   local yy=2.5+(fy-1)*8.5
+   part(m,"Seitenfensterrahmen",Vector3.new(0.35,3.7,4.2),cf*CFrame.new(w/2+0.16,yy,zSide),Enum.Material.Concrete,C.white,false)
+   part(m,"Seitenfenster",Vector3.new(0.22,3.1,3.6),cf*CFrame.new(w/2+0.38,yy,zSide),Enum.Material.Glass,C.glass,false,0.1)
+  end
+ end
  if kind=="shop" then
   part(m,"Schaufenster",Vector3.new(w*0.65,4.2,0.3),cf*CFrame.new(0,3.5,-d/2-0.22),Enum.Material.Glass,C.glass,false,0.08)
   part(m,"Markise",Vector3.new(w*0.75,0.4,2.6),cf*CFrame.new(0,6.1,-d/2-1.3),Enum.Material.SmoothPlastic,col(170,91,73),false)
