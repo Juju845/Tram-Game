@@ -380,50 +380,50 @@ local rng=Random.new(191126)
 local facades={col(218,202,174),col(190,190,179),col(185,132,105),col(208,216,211),col(224,216,195),col(164,181,181),col(204,184,162)}
 local roofs={col(63,67,70),col(93,74,63),col(109,88,72),col(75,84,87)}
 local function house(name,x,z,w,d,floors,rot,kind)
- local m=model(name,buildings); local cf=CFrame.new(x,0,z)*CFrame.Angles(0,math.rad(rot),0)
- local h=floors*8.5; local facade=facades[rng:NextInteger(1,#facades)]
- part(m,"Fassade",Vector3.new(w,h,d),cf*CFrame.new(0,h/2,0),Enum.Material.SmoothPlastic,facade,true)
- part(m,"Sockel",Vector3.new(w+0.8,1,d+0.8),cf*CFrame.new(0,0.55,0),Enum.Material.Concrete,C.concrete,true)
- part(m,"Dach",Vector3.new(w+2,1.1,d+2),cf*CFrame.new(0,h+0.5,0),Enum.Material.Slate,roofs[rng:NextInteger(1,#roofs)],true)
- -- Ausgearbeitete Dachkante und Fassadengliederung statt glatter Quader.
- part(m,"Dachgesims_Vorne",Vector3.new(w+2.8,0.65,0.8),cf*CFrame.new(0,h-0.2,-d/2-0.25),Enum.Material.Concrete,C.white,true)
- part(m,"Dachgesims_Hinten",Vector3.new(w+2.8,0.65,0.8),cf*CFrame.new(0,h-0.2,d/2+0.25),Enum.Material.Concrete,C.white,true)
- for _,xEdge in ipairs({-w/2+0.8,w/2-0.8}) do
-  part(m,"Fassadenpilaster",Vector3.new(1.2,h-1,0.65),cf*CFrame.new(xEdge,h/2,-d/2-0.18),Enum.Material.Concrete,C.white,false)
+ local m=model(name,buildings)
+ local cf=CFrame.new(x,0,z)*CFrame.Angles(0,math.rad(rot),0)
+ local h=floors*8.5
+ local facade=facades[rng:NextInteger(1,#facades)]
+ part(m,"Fundament",Vector3.new(w+1.6,1.2,d+1.6),cf*CFrame.new(0,0.6,0),Enum.Material.Concrete,C.concrete,true)
+ part(m,"Fassade",Vector3.new(w,h,d),cf*CFrame.new(0,h/2+1.1,0),Enum.Material.Brick,facade,true)
+ part(m,"Sockelband",Vector3.new(w+0.8,1,d+0.8),cf*CFrame.new(0,1.6,0),Enum.Material.Concrete,C.white,true)
+ part(m,"Dachplatte",Vector3.new(w+2.4,1,d+2.4),cf*CFrame.new(0,h+1.6,0),Enum.Material.Concrete,roofs[rng:NextInteger(1,#roofs)],true)
+ for _,xEdge in ipairs({-w/2+0.7,w/2-0.7}) do
+  part(m,"Fassadenpilaster",Vector3.new(0.9,h-1,0.8),cf*CFrame.new(xEdge,h/2+1.1,-d/2-0.18),Enum.Material.Concrete,C.white,false)
  end
- for fy=1,floors-1 do
-  part(m,"Stockwerksgesims",Vector3.new(w+1.2,0.35,0.55),cf*CFrame.new(0,fy*8.5,-d/2-0.2),Enum.Material.Concrete,C.white,false)
- end
- local count=math.max(2,math.floor(w/11))
  for fy=1,floors do
+  local yy=4.3+(fy-1)*8.5
+  local count=math.max(2,math.floor(w/12))
   for wx=1,count do
-   local xx=-w/2+wx*w/(count+1); local yy=2.5+(fy-1)*8.5
-   part(m,"Fensterrahmen",Vector3.new(4.5,4.5,0.38),cf*CFrame.new(xx,yy,-d/2-0.18),Enum.Material.Concrete,C.white,false)
-   part(m,"Fenster",Vector3.new(3.8,3.8,0.22),cf*CFrame.new(xx,yy,-d/2-0.4),Enum.Material.Glass,C.glass,false,0.08)
-   part(m,"Fensterkreuz",Vector3.new(0.16,3.8,0.12),cf*CFrame.new(xx,yy,-d/2-0.54),Enum.Material.Metal,C.white,false)
-   part(m,"Fensterbank",Vector3.new(4.8,0.25,0.65),cf*CFrame.new(xx,yy-2.15,-d/2-0.42),Enum.Material.Concrete,C.white,false)
+   local xx=-w/2+wx*w/(count+1)
+   part(m,"Fensterlaibung",Vector3.new(5.2,5.2,0.55),cf*CFrame.new(xx,yy,-d/2-0.22),Enum.Material.Concrete,C.white,false)
+   part(m,"Fensterglas",Vector3.new(4.2,4.2,0.18),cf*CFrame.new(xx,yy,-d/2-0.56),Enum.Material.Glass,C.glass,false,0.08)
+   part(m,"Fensterpfosten",Vector3.new(0.16,4.2,0.12),cf*CFrame.new(xx,yy,-d/2-0.68),Enum.Material.Metal,C.white,false)
+   part(m,"Fensterbank",Vector3.new(5.4,0.3,0.75),cf*CFrame.new(xx,yy-2.65,-d/2-0.48),Enum.Material.Concrete,C.white,false)
+  end
+  if fy<floors then
+   part(m,"Stockwerksband",Vector3.new(w+0.8,0.32,0.6),cf*CFrame.new(0,fy*8.5+1.0,-d/2-0.25),Enum.Material.Concrete,C.white,false)
   end
  end
- part(m,"Eingangstuer",Vector3.new(3.6,6.4,0.35),cf*CFrame.new(0,3.2,-d/2-0.2),Enum.Material.Wood,C.wood,false)
- part(m,"Vordach",Vector3.new(7,0.45,3),cf*CFrame.new(0,6.8,-d/2-1.3),Enum.Material.Metal,C.steel,true)
- part(m,"Eingangsstufe",Vector3.new(5.5,0.35,2.2),cf*CFrame.new(0,0.22,-d/2-1.3),Enum.Material.Concrete,C.sidewalk,true)
- -- Seitenfenster beleben die Gebaeude auch aus schraegem Blickwinkel.
- for _,zSide in ipairs({-d/2-0.2,d/2+0.2}) do
+ part(m,"Eingangstuer",Vector3.new(3.4,6.3,0.3),cf*CFrame.new(0,4.25,-d/2-0.25),Enum.Material.Wood,C.wood,false)
+ part(m,"Eingangsvordach",Vector3.new(6.5,0.45,3.2),cf*CFrame.new(0,7.5,-d/2-1.4),Enum.Material.Metal,C.steel,true)
+ part(m,"Eingangsstufe",Vector3.new(5.2,0.35,2),cf*CFrame.new(0,0.3,-d/2-1.1),Enum.Material.Concrete,C.sidewalk,true)
+ for _,side in ipairs({-1,1}) do
   for fy=1,floors do
-   local yy=2.5+(fy-1)*8.5
-   part(m,"Seitenfensterrahmen",Vector3.new(0.35,3.7,4.2),cf*CFrame.new(w/2+0.16,yy,zSide),Enum.Material.Concrete,C.white,false)
-   part(m,"Seitenfenster",Vector3.new(0.22,3.1,3.6),cf*CFrame.new(w/2+0.38,yy,zSide),Enum.Material.Glass,C.glass,false,0.1)
+   local yy=4.3+(fy-1)*8.5
+   part(m,"Seitenfensterrahmen",Vector3.new(0.45,3.8,4.2),cf*CFrame.new(side*(w/2+0.2),yy,0),Enum.Material.Concrete,C.white,false)
+   part(m,"Seitenfenster",Vector3.new(0.2,3.1,3.6),cf*CFrame.new(side*(w/2+0.48),yy,0),Enum.Material.Glass,C.glass,false,0.1)
   end
  end
  if kind=="shop" then
-  part(m,"Schaufenster",Vector3.new(w*0.65,4.2,0.3),cf*CFrame.new(0,3.5,-d/2-0.22),Enum.Material.Glass,C.glass,false,0.08)
-  part(m,"Markise",Vector3.new(w*0.75,0.4,2.6),cf*CFrame.new(0,6.1,-d/2-1.3),Enum.Material.SmoothPlastic,col(170,91,73),false)
+  part(m,"Schaufenster",Vector3.new(w*0.62,4,0.3),cf*CFrame.new(0,4.1,-d/2-0.4),Enum.Material.Glass,C.glass,false,0.08)
+  part(m,"Markise",Vector3.new(w*0.72,0.45,2.5),cf*CFrame.new(0,6.5,-d/2-1.35),Enum.Material.SmoothPlastic,col(170,91,73),false)
  end
  if kind=="apartment" then
   for fy=1,floors-1 do
-   local yy=4.2+(fy-1)*8.5
-   part(m,"Balkon",Vector3.new(6,0.3,1.8),cf*CFrame.new(-w*0.22,yy,-d/2-0.9),Enum.Material.Concrete,C.concrete,true)
-   part(m,"Balkongelaender",Vector3.new(6,1,0.16),cf*CFrame.new(-w*0.22,yy+0.65,-d/2-1.7),Enum.Material.Metal,C.white,false)
+   local yy=5.8+(fy-1)*8.5
+   part(m,"Balkonplatte",Vector3.new(6.5,0.3,2),cf*CFrame.new(-w*0.2,yy,-d/2-1),Enum.Material.Concrete,C.concrete,true)
+   part(m,"Balkongelaender",Vector3.new(6.5,1,0.16),cf*CFrame.new(-w*0.2,yy+0.65,-d/2-1.95),Enum.Material.Metal,C.white,false)
   end
  end
  return m
@@ -611,5 +611,5 @@ end
 print("[LINDENHAFEN V19] Strassen, Haltestellen, Felder und Wendebereich ueberarbeitet.")
 print("[LINDENHAFEN V19] Wendeschleife mit zwei verbundenen Gleisen erstellt.")
 print("[LINDENHAFEN V19] Tramstrecke deutlich verlaengert und Landstrasse am Stadtrand seitlich abgezweigt.")
-print("[LINDENHAFEN V17] Gebaeudezeilen enden vor dem Ueberlandabschnitt; Felder und Hof bleiben erhalten.")
+print("[LINDENHAFEN V19] Gebaeudezeilen enden vor dem Ueberlandabschnitt; Felder und Hof bleiben erhalten.")
 print("[LINDENHAFEN V17] Alle Boden-Kacheln bleiben unter dem Roblox-Partlimit.")
