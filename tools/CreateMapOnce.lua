@@ -1,4 +1,4 @@
--- LINDENHAFEN V17 - verlaengerte Stadt- und Ueberlandstrecke mit Landabschnitt
+-- LINDENHAFEN V18 - verlaengerte Stadt- und Ueberlandstrecke mit Landabschnitt
 -- Einmalig in Roblox Studio Command Bar ausfuehren. Alle Teile bleiben editierbar.
 
 local Workspace = game:GetService("Workspace")
@@ -116,11 +116,14 @@ local route=smooth({
  Vector3.new(420,0,700),Vector3.new(720,0,930),
  Vector3.new(1150,0,980),Vector3.new(1650,0,980),
  -- Ueberlandverlaengerung: aus dem Stadtrand hinaus in offene Landschaft.
- Vector3.new(2150,0,1020),Vector3.new(2650,0,930),
- Vector3.new(3100,0,650),Vector3.new(3500,0,250),
- Vector3.new(3850,0,-180),Vector3.new(4200,0,-520),
- Vector3.new(4550,0,-930),Vector3.new(4850,0,-1420),
- Vector3.new(5200,0,-1850),Vector3.new(5550,0,-2070)
+ Vector3.new(1950,0,1010),Vector3.new(2250,0,920),
+ Vector3.new(2500,0,650),Vector3.new(2700,0,320),
+ -- Zweite Stadt mit grosszuegigem Wendebogen am Linienende.
+ Vector3.new(2920,0,80),Vector3.new(3220,0,-40),
+ Vector3.new(3520,0,40),Vector3.new(3750,0,260),
+ Vector3.new(3840,0,540),Vector3.new(3750,0,820),
+ Vector3.new(3520,0,1030),Vector3.new(3220,0,1110),
+ Vector3.new(2920,0,1020),Vector3.new(2700,0,800)
 },18)
 local total=pathLength(route)
 
@@ -158,6 +161,15 @@ do
  }
  road(smooth(exitNodes,14),22,"Abzweigende_Landstrasse")
 end
+-- Sanfte Verbindungen und Seitenstrassen in der zweiten Stadt, statt abrupt endender Strassen.
+road(smooth({
+ Vector3.new(2850,0,300),Vector3.new(3000,0,120),Vector3.new(3220,0,70),
+ Vector3.new(3450,0,120),Vector3.new(3620,0,280)
+},18),20,"Zweite_Stadt_Hauptstrasse")
+road(smooth({
+ Vector3.new(3020,0,780),Vector3.new(3180,0,930),Vector3.new(3420,0,960),
+ Vector3.new(3630,0,850)
+},18),18,"Zweite_Stadt_Quartierstrasse")
 local crossRoads={
  {Vector3.new(-1050,0,-1370),Vector3.new(-1000,0,-1120),Vector3.new(-980,0,-850),Vector3.new(-900,0,-580)},
  {Vector3.new(-450,0,-1370),Vector3.new(-420,0,-1110),Vector3.new(-390,0,-850),Vector3.new(-300,0,-600)},
@@ -168,6 +180,41 @@ local crossRoads={
  {Vector3.new(1000,0,1250),Vector3.new(1250,0,1270),Vector3.new(1500,0,1280),Vector3.new(1800,0,1280)}
 }
 for i,nodes in ipairs(crossRoads) do road(smooth(nodes,12),22,"Quartiersstrasse_"..i) end
+
+-- Strassenbahn-Bahnuebergang mit Andreaskreuzen, Blinksignalen und Schranken.
+do
+ local p,t,n=atDistance(route,total*0.34)
+ local crossing=smooth({p+n*135,p+n*75,p-n*75,p-n*135},8)
+ road(crossing,22,"Bahnuebergang_Strasse")
+ local equipment=model("Schrankenanlage")
+ for _,side in ipairs({-1,1}) do
+  local q=p+n*(side*39)
+  local polePos=q+t*13
+  block(equipment,"Schrankenmast",Vector3.new(1.4,7,1.4),Vector3.new(polePos.X,3.5,polePos.Z),Enum.Material.Metal,C.yellow,true)
+  block(equipment,"Signalgehause",Vector3.new(2.4,3.2,1.2),Vector3.new(polePos.X,7.5,polePos.Z),Enum.Material.Metal,C.dark,false)
+  for _,dx in ipairs({-0.65,0.65}) do
+   local lamp=block(equipment,"Warnleuchte",Vector3.new(0.65,0.65,0.35),Vector3.new(polePos.X+dx,7.6,polePos.Z-0.72),Enum.Material.Neon,col(220,45,38),false)
+   local light=Instance.new("PointLight"); light.Color=col(255,30,20); light.Brightness=0.7; light.Range=9; light.Parent=lamp
+  end
+  local armStart=q+t*10
+  local armEnd=q-t*10
+  segment(equipment,"Schrankenbaum",0.8,0.75,armStart,armEnd,4.2,Enum.Material.SmoothPlastic,C.white,false)
+  for k=1,8 do
+   local f=(k-0.5)/8
+   local a=armStart:Lerp(armEnd,f-0.5/8)
+   local b=armStart:Lerp(armEnd,f+0.5/8)
+   segment(equipment,"Rotweisser_Streifen",0.84,0.78,a,b,4.2,Enum.Material.SmoothPlastic,(k%2==0) and col(205,35,32) or C.white,false)
+  end
+ end
+ -- Andreaskreuze an beiden Strassenseiten.
+ for _,side in ipairs({-1,1}) do
+  local q=p+n*(side*62)+t*23
+  block(equipment,"Andreaskreuz_Mast",Vector3.new(0.45,7,0.45),Vector3.new(q.X,3.5,q.Z),Enum.Material.Metal,C.steel,true)
+  local cross=block(equipment,"Andreaskreuz_Querbalken",Vector3.new(0.55,0.55,5),Vector3.new(q.X,6.5,q.Z),Enum.Material.SmoothPlastic,C.white,false)
+  local diag=block(equipment,"Andreaskreuz_Diagonalbalken",Vector3.new(0.55,0.55,5),Vector3.new(q.X,6.5,q.Z),Enum.Material.SmoothPlastic,C.white,false)
+  diag.CFrame=diag.CFrame*CFrame.Angles(0,0,math.rad(45))
+ end
+end
 
 -- Doppelgleis mit grossem Mittenabstand von 18 Studs.
 -- Schwellen quer zur Fahrtrichtung; Schienenkoepfe korrekt auf den Schienenstegen.
@@ -193,19 +240,37 @@ for laneIndex,centre in ipairs(centers) do
  end
 end
 
--- Depot: Halle direkt an den Streckenanfang angeschlossen, zwei breite Tore.
+-- Depot: groesserer, detaillierter Betriebshof mit Werkstatt, Abstellgleisen und Servicebereich.
 local depot=model("Betriebshof")
-block(depot,"Hofplatte",Vector3.new(260,0.35,190),Vector3.new(-1770,0.1,-1000),Enum.Material.Concrete,C.sidewalk,true)
+block(depot,"Hofplatte",Vector3.new(330,0.35,230),Vector3.new(-1770,0.1,-1000),Enum.Material.Concrete,C.sidewalk,true)
+-- Hofmarkierungen und Gehbereiche
+for i=-2,2 do
+ segment(depot,"Abstellmarkierung",0.35,0.08,Vector3.new(-1885,0,-1000+i*22),Vector3.new(-1715,0,-1000+i*22),0.36,Enum.Material.SmoothPlastic,C.yellow,false)
+end
 local hall=model("Wagenhalle",depot)
 block(hall,"Rueckwand",Vector3.new(2,19,100),Vector3.new(-1835,9.5,-1000),Enum.Material.Concrete,col(183,190,188),true)
 block(hall,"Seitenwand_Nord",Vector3.new(125,19,2),Vector3.new(-1772,9.5,-1050),Enum.Material.Concrete,col(183,190,188),true)
 block(hall,"Seitenwand_Sued",Vector3.new(125,19,2),Vector3.new(-1772,9.5,-950),Enum.Material.Concrete,col(183,190,188),true)
 block(hall,"Dach",Vector3.new(130,1.5,106),Vector3.new(-1772,19.5,-1000),Enum.Material.Metal,C.steel,true)
+-- Werkstattfenster, Oberlichtband und Werkstatt-Anbau
+for _,z in ipairs({-1035,-1018,-982,-965}) do
+ block(hall,"Werkstattfenster",Vector3.new(0.25,5,9),Vector3.new(-1833,10,z),Enum.Material.Glass,C.glass,false,0.12)
+end
+for _,x in ipairs({-1815,-1785,-1755}) do
+ block(hall,"Dachoberlicht",Vector3.new(18,0.5,2),Vector3.new(x,20.35,-1000),Enum.Material.Glass,C.glass,false,0.12)
+end
+block(hall,"Werkstatt_Anbau",Vector3.new(42,13,40),Vector3.new(-1895,6.5,-1000),Enum.Material.Concrete,col(174,183,181),true)
+block(hall,"Anbau_Dach",Vector3.new(45,1,43),Vector3.new(-1895,13.5,-1000),Enum.Material.Metal,C.steel,true)
 -- Portalrahmen an der Ostseite, Tore bleiben offen und Gleise laufen hinein.
 for _,z in ipairs({-1045,-1000,-955}) do
  block(hall,"Torpfosten",Vector3.new(2,15,2),Vector3.new(-1708,7.5,z),Enum.Material.Metal,C.steel,true)
 end
 block(hall,"Torsturz",Vector3.new(2,2,100),Vector3.new(-1708,17,-1000),Enum.Material.Metal,C.steel,true)
+-- Serviceobjekte auf dem Betriebshof.
+block(depot,"Tankinsel",Vector3.new(16,0.5,10),Vector3.new(-1760,0.5,-1080),Enum.Material.Concrete,C.concrete,true)
+block(depot,"Ladesaeule",Vector3.new(3,7,3),Vector3.new(-1760,4,-1080),Enum.Material.Metal,C.steel,true)
+block(depot,"Betriebsgebaeude",Vector3.new(34,13,26),Vector3.new(-1900,6.5,-1090),Enum.Material.Concrete,col(204,198,181),true)
+block(depot,"Betriebsgebaeude_Dach",Vector3.new(38,1,30),Vector3.new(-1900,13.5,-1090),Enum.Material.Metal,C.steel,true)
 -- Zwei Anschlussgleise mit je zwei Schienen, passend zum Haupt-Doppelgleis.
 for _,centre in ipairs({-9,9}) do
  local z=-1000+centre
@@ -246,7 +311,14 @@ local function station(name,distance)
  for _,side in ipairs({-1,1}) do
   local centre=side*20; local pos=p+n*centre
   local platformCF=CFrame.lookAt(Vector3.new(pos.X,0.45,pos.Z),Vector3.new(pos.X,0.45,pos.Z)+t)
-  part(s,"Bahnsteig",Vector3.new(7.5,0.8,76),platformCF,Enum.Material.Concrete,C.sidewalk,true)
+  part(s,"Bahnsteig",Vector3.new(10,1,100),platformCF,Enum.Material.Concrete,C.sidewalk,true)
+  -- Kontraststreifen und taktile Leitfelder auf dem Bahnsteig.
+  local tactileCF=CFrame.lookAt(Vector3.new(pos.X,1.03,pos.Z),Vector3.new(pos.X,1.03,pos.Z)+t)
+  part(s,"Leitstreifen",Vector3.new(0.65,0.12,94),tactileCF,Enum.Material.SmoothPlastic,C.yellow,false)
+  for _,along in ipairs({-38,-30,-22,22,30,38}) do
+   local q=pos+t*along-n*(side*3.5)
+   block(s,"Aufmerksamkeitsfeld",Vector3.new(2.2,0.13,2.2),Vector3.new(q.X,1.08,q.Z),Enum.Material.SmoothPlastic,C.yellow,false)
+  end
   local edgePos=pos-n*(side*3.25)
   local edgeCF=CFrame.lookAt(Vector3.new(edgePos.X,0.98,edgePos.Z),Vector3.new(edgePos.X,0.98,edgePos.Z)+t)
   part(s,"Taktile_Bahnsteigkante",Vector3.new(0.55,0.16,74),edgeCF,Enum.Material.SmoothPlastic,C.yellow,false)
@@ -258,7 +330,18 @@ local function station(name,distance)
    end
   end
   local roofCF=CFrame.lookAt(Vector3.new(pos.X,5.25,pos.Z),Vector3.new(pos.X,5.25,pos.Z)+t)
-  part(s,"Haltestellendach",Vector3.new(6.4,0.45,55),roofCF,Enum.Material.Metal,C.steel,true)
+  part(s,"Haltestellendach",Vector3.new(8.2,0.65,64),roofCF,Enum.Material.Metal,C.steel,true)
+  -- Rueckwand, Sitzbank und Fahrgastinformation unter dem Dach.
+  local backPos=pos+n*(side*3.2)
+  local backCF=CFrame.lookAt(Vector3.new(backPos.X,2.4,backPos.Z),Vector3.new(backPos.X,2.4,backPos.Z)+t)
+  part(s,"Glas_Rueckwand",Vector3.new(0.18,3.1,48),backCF,Enum.Material.Glass,C.glass,false,0.2)
+  local infoPos=pos+t*(-7)+n*(side*1.4)
+  local info=block(s,"Fahrplanvitrine",Vector3.new(3.2,4.2,0.5),Vector3.new(infoPos.X,2.8,infoPos.Z),Enum.Material.Metal,C.steel,true)
+  block(s,"Fahrplanfenster",Vector3.new(2.5,2.7,0.16),Vector3.new(infoPos.X,3.0,infoPos.Z-0.3),Enum.Material.Glass,C.white,false)
+  block(s,"Sitzbank_Sitzflaeche",Vector3.new(1.2,0.4,12),Vector3.new(pos.X,1.55,pos.Z),Enum.Material.Wood,C.wood,true)
+  block(s,"Sitzbank_Rueckenlehne",Vector3.new(0.35,1.5,12),Vector3.new(pos.X,2.25,pos.Z+1.8),Enum.Material.Wood,C.wood,true)
+  local clock=block(s,"Stationsuhr",Vector3.new(1.8,1.8,0.4),Vector3.new(p.X,7.3,p.Z),Enum.Material.SmoothPlastic,C.white,false)
+  local clockFace=Instance.new("Decal"); clockFace.Name="Uhrblatt"; clockFace.Face=Enum.NormalId.Front; clockFace.Parent=clock
   for _,along in ipairs({-18,18}) do
    local q=pos+t*along+n*2.6
    local glassCF=CFrame.lookAt(Vector3.new(q.X,2.1,q.Z),Vector3.new(q.X,2.1,q.Z)+t)
@@ -277,6 +360,20 @@ station("Haltestelle_Westtor",total*0.18)
 station("Haltestelle_Stadtmitte",total*0.48)
 station("Haltestelle_Hafenpark",total*0.62)
 station("Haltestelle_Landbahnhof",total*0.91)
+station("Endhaltestelle_Neustadt",total*0.94)
+-- Kleine zweite Stadt um die Endhaltestelle: Platz, Geschaefte und Wohnhaeuser.
+local secondTown=model("Neustadt_Ortskern",buildings)
+local function townBlock(name,size,pos,material,color)
+ return block(secondTown,name,size,pos,material,color,true)
+end
+townBlock("Marktplatz",Vector3.new(260,0.3,190),Vector3.new(3300,0.18,530),Enum.Material.Concrete,C.sidewalk)
+for i=1,7 do
+ local x=2920+(i%4)*145
+ local z=180+math.floor((i-1)/4)*560
+ house("Neustadt_Haus_"..i,x,z,48,38,2+(i%2),((i%2)*7)-3,(i%3==0) and "shop" or "apartment")
+end
+publicBuilding("Neustadt_Rathaus",3500,540,88,60,25,col(205,197,178))
+publicBuilding("Neustadt_Schule",2860,690,95,64,22,col(214,204,184))
 
 -- Stadtgebaeude. Die Reihen folgen den Boulevardstrassen und stehen sichtbar naeher an der Tram.
 local buildings=model("Stadtgebaeude")
@@ -363,6 +460,11 @@ for i=1,9 do
  crown.Shape=Enum.PartType.Ball
 end
 
+-- Kleine Platzbeleuchtung und Baumbestand der zweiten Stadt.
+for _,pos in ipairs({{3150,420},{3450,420},{3150,650},{3450,650}}) do
+ tree(pos[1],pos[2],1.15)
+end
+
 -- Fest abgestellte, selbstgebaute Autos am Strassenrand (statisch, keine Bewegung).
 local parkedCars=folder("Statische_Autos")
 local carColors={col(180,55,48),col(55,91,142),col(210,193,145),col(65,105,76),col(65,66,70),col(220,220,210)}
@@ -445,7 +547,7 @@ if groundFolder then
  end
 end
 
-print("[LINDENHAFEN V17] Grosse Gruenflaeche aus 60 editierbaren Kacheln erstellt.")
+print("[LINDENHAFEN V18] Grosse Gruenflaeche aus 60 editierbaren Kacheln erstellt.")
 print("[LINDENHAFEN V17] Tramstrecke deutlich verlaengert und Landstrasse am Stadtrand seitlich abgezweigt.")
 print("[LINDENHAFEN V17] Gebaeudezeilen enden vor dem Ueberlandabschnitt; Felder und Hof bleiben erhalten.")
 print("[LINDENHAFEN V17] Alle Boden-Kacheln bleiben unter dem Roblox-Partlimit.")
