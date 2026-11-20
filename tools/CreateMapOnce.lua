@@ -93,7 +93,7 @@ local cc=Instance.new("ColorCorrectionEffect"); cc.Name="RNV_Color"
 cc.Contrast=0.06; cc.Saturation=0.03; cc.TintColor=col(255,249,239); cc.Parent=Lighting
 
 -- Grosses, zusammenhaengendes Stadtgebiet statt vier kleiner Bodenplatten.
-block(map,"Stadtgebiet_Lindenhafen",Vector3.new(6000,3,5000),Vector3.new(0,-1.5,0),Enum.Material.Grass,C.grass,true) -- Oberkante exakt auf Y=0
+block(map,"Stadtgebiet_Lindenhafen",Vector3.new(8600,3,5000),Vector3.new(0,-1.5,0),Enum.Material.Grass,C.grass,true) -- Oberkante exakt auf Y=0
 
 -- Offene Linie: lange Gerade, sanfte Kurven, weitere Gerade und ein zweiter Bogen.
 -- Kein geschlossener Ring. Enden bleiben fuer spaetere Erweiterungen offen.
