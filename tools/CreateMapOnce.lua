@@ -361,20 +361,6 @@ station("Haltestelle_Stadtmitte",total*0.48)
 station("Haltestelle_Hafenpark",total*0.62)
 station("Haltestelle_Landbahnhof",total*0.91)
 station("Endhaltestelle_Neustadt",total*0.94)
--- Kleine zweite Stadt um die Endhaltestelle: Platz, Geschaefte und Wohnhaeuser.
-local secondTown=model("Neustadt_Ortskern",buildings)
-local function townBlock(name,size,pos,material,color)
- return block(secondTown,name,size,pos,material,color,true)
-end
-townBlock("Marktplatz",Vector3.new(260,0.3,190),Vector3.new(3300,0.18,530),Enum.Material.Concrete,C.sidewalk)
-for i=1,7 do
- local x=2920+(i%4)*145
- local z=180+math.floor((i-1)/4)*560
- house("Neustadt_Haus_"..i,x,z,48,38,2+(i%2),((i%2)*7)-3,(i%3==0) and "shop" or "apartment")
-end
-publicBuilding("Neustadt_Rathaus",3500,540,88,60,25,col(205,197,178))
-publicBuilding("Neustadt_Schule",2860,690,95,64,22,col(214,204,184))
-
 -- Stadtgebaeude. Die Reihen folgen den Boulevardstrassen und stehen sichtbar naeher an der Tram.
 local buildings=model("Stadtgebaeude")
 local rng=Random.new(191126)
@@ -454,6 +440,20 @@ publicBuilding("Einkaufszentrum",1280,650,132,82,30,col(187,195,191))
 publicBuilding("Feuerwache",-1350,-650,92,64,24,col(195,190,178))
 publicBuilding("Schule",-450,1180,120,78,25,col(214,204,184))
 publicBuilding("Hafenhalle",1450,350,118,74,22,col(174,187,186))
+
+-- Kleine zweite Stadt um die Endhaltestelle: Platz, Geschaefte und Wohnhaeuser.
+local secondTown=model("Neustadt_Ortskern",buildings)
+local function townBlock(name,size,pos,material,color)
+ return block(secondTown,name,size,pos,material,color,true)
+end
+townBlock("Marktplatz",Vector3.new(260,0.3,190),Vector3.new(3300,0.18,530),Enum.Material.Concrete,C.sidewalk)
+for i=1,7 do
+ local x=2920+(i%4)*145
+ local z=180+math.floor((i-1)/4)*560
+ house("Neustadt_Haus_"..i,x,z,48,38,2+(i%2),((i%2)*7)-3,(i%3==0) and "shop" or "apartment")
+end
+publicBuilding("Neustadt_Rathaus",3500,540,88,60,25,col(205,197,178))
+publicBuilding("Neustadt_Schule",2860,690,95,64,22,col(214,204,184))
 
 -- Ueberlandabschnitt: Felder, Wiesenstreifen, Baumgruppen und ein kleiner Hof.
 local countryside=folder("Ueberland_und_Landwirtschaft")
