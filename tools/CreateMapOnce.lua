@@ -1,4 +1,4 @@
--- LINDENHAFEN V16 - verlaengerte Stadt- und Ueberlandstrecke mit Landabschnitt
+-- LINDENHAFEN V17 - verlaengerte Stadt- und Ueberlandstrecke mit Landabschnitt
 -- Einmalig in Roblox Studio Command Bar ausfuehren. Alle Teile bleiben editierbar.
 
 local Workspace = game:GetService("Workspace")
@@ -92,8 +92,19 @@ atmosphere.Color=col(208,222,229); atmosphere.Decay=col(128,143,149); atmosphere
 local cc=Instance.new("ColorCorrectionEffect"); cc.Name="RNV_Color"
 cc.Contrast=0.06; cc.Saturation=0.03; cc.TintColor=col(255,249,239); cc.Parent=Lighting
 
--- Grosses, zusammenhaengendes Stadtgebiet statt vier kleiner Bodenplatten.
-block(map,"Stadtgebiet_Lindenhafen",Vector3.new(8600,3,5000),Vector3.new(0,-1.5,0),Enum.Material.Grass,C.grass,true) -- Oberkante exakt auf Y=0
+-- Grosses Stadtgebiet aus mehreren Kacheln, da Roblox einzelne Parts auf 2048 Studs begrenzt.
+-- Der Ordner fasst die gesamte gruenen Flaeche zusammen; jede Kachel bleibt einzeln editierbar.
+local groundGroup=folder("Stadtgebiet_Lindenhafen")
+local groundWidth,groundDepth=12000,7000
+local groundCols,groundRows=10,6
+local tileW,tileD=groundWidth/groundCols,groundDepth/groundRows
+for ix=1,groundCols do
+ for iz=1,groundRows do
+  local x=-groundWidth/2+tileW*(ix-0.5)
+  local z=-groundDepth/2+tileD*(iz-0.5)
+  block(groundGroup,"Gruenflaeche_"..ix.."_"..iz,Vector3.new(tileW,3,tileD),Vector3.new(x,-1.5,z),Enum.Material.Grass,C.grass,true)
+ end
+end
 
 -- Offene Linie: lange Gerade, sanfte Kurven, weitere Gerade und ein zweiter Bogen.
 -- Kein geschlossener Ring. Enden bleiben fuer spaetere Erweiterungen offen.
@@ -107,7 +118,9 @@ local route=smooth({
  -- Ueberlandverlaengerung: aus dem Stadtrand hinaus in offene Landschaft.
  Vector3.new(2150,0,1020),Vector3.new(2650,0,930),
  Vector3.new(3100,0,650),Vector3.new(3500,0,250),
- Vector3.new(3850,0,-180)
+ Vector3.new(3850,0,-180),Vector3.new(4200,0,-520),
+ Vector3.new(4550,0,-930),Vector3.new(4850,0,-1420),
+ Vector3.new(5200,0,-1850),Vector3.new(5550,0,-2070)
 },18)
 local total=pathLength(route)
 
@@ -132,6 +145,19 @@ for d=0,total*0.58,35 do local p=atDistance(route,d); urbanRoute[#urbanRoute+1]=
 local lastUrban=atDistance(route,total*0.58); urbanRoute[#urbanRoute+1]=lastUrban
 road(offset(urbanRoute,57),23,"Boulevard_Nord")
 road(offset(urbanRoute,-57),23,"Boulevard_Sued")
+-- Am Stadtrand zweigt eine richtige Landstrasse seitlich ab, statt abrupt zu enden.
+do
+ local p,t,n=atDistance(route,total*0.58)
+ local exitNodes={
+  p+n*57,
+  p+n*170+t*95,
+  p+n*310+t*210,
+  p+n*470+t*330,
+  p+n*650+t*470,
+  p+n*820+t*620
+ }
+ road(smooth(exitNodes,14),22,"Abzweigende_Landstrasse")
+end
 local crossRoads={
  {Vector3.new(-1050,0,-1370),Vector3.new(-1000,0,-1120),Vector3.new(-980,0,-850),Vector3.new(-900,0,-580)},
  {Vector3.new(-450,0,-1370),Vector3.new(-420,0,-1110),Vector3.new(-390,0,-850),Vector3.new(-300,0,-600)},
@@ -289,7 +315,7 @@ end
 
 -- Gebaeudezeilen an beiden Strassenseiten entlang der gesamten Tramachse.
 for sideIndex,side in ipairs({-1,1}) do
- for d=105,math.floor(total-70),155 do
+ for d=105,math.floor(total*0.55),155 do
   local p,t,n=atDistance(route,d)
   local q=p+n*(side*108)
   local width=rng:NextInteger(42,58); local depth=rng:NextInteger(34,46)
@@ -399,8 +425,8 @@ block(park,"Uferweg",Vector3.new(210,0.25,10),Vector3.new(650,0.28,1495),Enum.Ma
 for _,p in ipairs({{480,1360},{560,1370},{750,1360},{830,1430},{500,1530},{780,1540}}) do tree(p[1],p[2],1.1) end
 
 -- GESAMTE KARTE VERGROESSERN: Strecke, Gleisabstand, Gebaeude, Strassen,
--- Haltestellen, Oberleitung, Mobiliar und Grasflaeche werden gemeinsam skaliert.
--- Dadurch bleiben alle Abstaende und Hoehenverhaeltnisse erhalten.
+-- Haltestellen, Oberleitung, Mobiliar und alle Boden-Kacheln werden gemeinsam skaliert.
+-- Die Boden-Kacheln bleiben nach der Skalierung jeweils unter 2048 Studs pro Achse.
 local MAP_SCALE = 1.5
 -- Alle Bauteile inklusive Spawn, Gleise, Gebaeude und Deko einheitlich skalieren.
 for _,obj in ipairs(map:GetDescendants()) do
@@ -412,10 +438,14 @@ for _,obj in ipairs(map:GetDescendants()) do
  end
 end
 -- Grasoberkante exakt auf Y=0 setzen, damit Gebaeude nicht schweben.
-local ground=map:FindFirstChild("Stadtgebiet_Lindenhafen")
-if ground then ground.Position=Vector3.new(0,-ground.Size.Y/2,0) end
+local groundFolder=map:FindFirstChild("Stadtgebiet_Lindenhafen")
+if groundFolder then
+ for _,tile in ipairs(groundFolder:GetChildren()) do
+  if tile:IsA("BasePart") then tile.Position=Vector3.new(tile.Position.X,-tile.Size.Y/2,tile.Position.Z) end
+ end
+end
 
-print("[LINDENHAFEN V16] Verlaengerte Tramstrecke mit Stadt-, Feld- und Ueberlandabschnitt erstellt.")
-print("[LINDENHAFEN V16] Stadtboulevards enden am Stadtrand; Landabschnitt ohne durchgehende Parallelstrasse.")
-print("[LINDENHAFEN V16] Statische, selbstgebaute Autos und Aussiedlerhof hinzugefuegt.")
-print("[LINDENHAFEN V16] Bodenflaeche vergroessert; alle Objekte bleiben editierbar.")
+print("[LINDENHAFEN V17] Grosse Gruenflaeche aus 60 editierbaren Kacheln erstellt.")
+print("[LINDENHAFEN V17] Tramstrecke deutlich verlaengert und Landstrasse am Stadtrand seitlich abgezweigt.")
+print("[LINDENHAFEN V17] Gebaeudezeilen enden vor dem Ueberlandabschnitt; Felder und Hof bleiben erhalten.")
+print("[LINDENHAFEN V17] Alle Boden-Kacheln bleiben unter dem Roblox-Partlimit.")
