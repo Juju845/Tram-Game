@@ -332,7 +332,9 @@ block(farm,"Scheune",Vector3.new(48,15,34),Vector3.new(3020,7.5,1650),Enum.Mater
 block(farm,"Scheunendach",Vector3.new(53,2,39),Vector3.new(3020,16,1650),Enum.Material.Metal,col(105,76,59),true)
 for i=1,9 do
  local x=2800+i*28
- tree(x,1780+(i%2)*18,1.15)
+ block(countryside,"Hain_Stamm_"..i,Vector3.new(1.3,7,1.3),Vector3.new(x,3.5,1780+(i%2)*18),Enum.Material.Wood,C.wood,false)
+ local crown=block(countryside,"Hain_Krone_"..i,Vector3.new(7,7,7),Vector3.new(x,8,1780+(i%2)*18),Enum.Material.Grass,C.green,false)
+ crown.Shape=Enum.PartType.Ball
 end
 
 -- Fest abgestellte, selbstgebaute Autos am Strassenrand (statisch, keine Bewegung).
