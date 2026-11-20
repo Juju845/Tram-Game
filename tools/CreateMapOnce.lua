@@ -476,13 +476,15 @@ local function pointSegmentDistance(p,a,b)
  local q=a+ab*u
  return (Vector3.new(p.X-q.X,0,p.Z-q.Z)).Magnitude
 end
-local function clearField(center,halfWidth)
- for i=1,#route-1 do if pointSegmentDistance(center,route[i],route[i+1])<235+halfWidth then return false end end
+local function clearField(center,halfWidth,halfLength)
+ local radius=math.sqrt(halfWidth*halfWidth+halfLength*halfLength)
+ for i=1,#route-1 do if pointSegmentDistance(center,route[i],route[i+1])<235+radius then return false end end
  for _,rp in ipairs(roadPaths) do
-  for i=1,#rp.points-1 do if pointSegmentDistance(center,rp.points[i],rp.points[i+1])<rp.width/2+halfWidth+35 then return false end end
+  for i=1,#rp.points-1 do if pointSegmentDistance(center,rp.points[i],rp.points[i+1])<rp.width/2+radius+35 then return false end end
  end
  return true
 end
+road(smooth({Vector3.new(2450,0,1450),Vector3.new(2700,0,1650),Vector3.new(3000,0,1740),Vector3.new(3260,0,1690)},10),9,"Landwirtschaftlicher_Feldweg")
 local fieldCandidates={
  {Vector3.new(2050,0,1550),Vector3.new(1,0,0),170,95},
  {Vector3.new(2250,0,1830),Vector3.new(1,0,0),165,100},
@@ -496,7 +498,7 @@ local fieldCandidates={
 local fieldColors={col(153,151,91),col(177,163,104),col(133,151,88),col(183,174,112)}
 for i,c in ipairs(fieldCandidates) do
  local center,along,halfLength,halfWidth=c[1],c[2],c[3],c[4]
- if clearField(center,halfWidth) then
+ if clearField(center,halfWidth,halfLength) then
   local across=Vector3.new(-along.Z,0,along.X)
   local field=model("Acker_"..i,countryside)
   part(field,"Ackerboden",Vector3.new(halfWidth*2,0.2,halfLength*2),CFrame.lookAt(Vector3.new(center.X,0.08,center.Z),Vector3.new(center.X,0.08,center.Z)+along),Enum.Material.Ground,fieldColors[(i-1)%#fieldColors+1],false)
@@ -509,7 +511,6 @@ for i,c in ipairs(fieldCandidates) do
   end
  end
 end
-road(smooth({Vector3.new(2450,0,1450),Vector3.new(2700,0,1650),Vector3.new(3000,0,1740),Vector3.new(3260,0,1690)},10),9,"Landwirtschaftlicher_Feldweg")
 local farm=model("Aussiedlerhof",countryside)
 block(farm,"Wohnhaus",Vector3.new(34,18,28),Vector3.new(2940,9,1580),Enum.Material.Brick,col(190,160,130),true)
 block(farm,"Wohnhausdach",Vector3.new(38,2,32),Vector3.new(2940,19,1580),Enum.Material.Slate,C.steel,true)
