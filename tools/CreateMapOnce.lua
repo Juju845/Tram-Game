@@ -1,4 +1,4 @@
--- LINDENHAFEN V15 - offene Stadtbahnstrecke, breites Doppelgleis, neue Stadt
+-- LINDENHAFEN V16 - verlaengerte Stadt- und Ueberlandstrecke mit Landabschnitt
 -- Einmalig in Roblox Studio Command Bar ausfuehren. Alle Teile bleiben editierbar.
 
 local Workspace = game:GetService("Workspace")
@@ -93,7 +93,7 @@ local cc=Instance.new("ColorCorrectionEffect"); cc.Name="RNV_Color"
 cc.Contrast=0.06; cc.Saturation=0.03; cc.TintColor=col(255,249,239); cc.Parent=Lighting
 
 -- Grosses, zusammenhaengendes Stadtgebiet statt vier kleiner Bodenplatten.
-block(map,"Stadtgebiet_Lindenhafen",Vector3.new(4200,3,3600),Vector3.new(0,-1.5,0),Enum.Material.Grass,C.grass,true) -- Oberkante exakt auf Y=0
+block(map,"Stadtgebiet_Lindenhafen",Vector3.new(6000,3,5000),Vector3.new(0,-1.5,0),Enum.Material.Grass,C.grass,true) -- Oberkante exakt auf Y=0
 
 -- Offene Linie: lange Gerade, sanfte Kurven, weitere Gerade und ein zweiter Bogen.
 -- Kein geschlossener Ring. Enden bleiben fuer spaetere Erweiterungen offen.
@@ -103,7 +103,11 @@ local route=smooth({
  Vector3.new(0,0,-700),Vector3.new(220,0,-430),
  Vector3.new(300,0,-100),Vector3.new(300,0,350),
  Vector3.new(420,0,700),Vector3.new(720,0,930),
- Vector3.new(1150,0,980),Vector3.new(1650,0,980)
+ Vector3.new(1150,0,980),Vector3.new(1650,0,980),
+ -- Ueberlandverlaengerung: aus dem Stadtrand hinaus in offene Landschaft.
+ Vector3.new(2150,0,1020),Vector3.new(2650,0,930),
+ Vector3.new(3100,0,650),Vector3.new(3500,0,250),
+ Vector3.new(3850,0,-180)
 },18)
 local total=pathLength(route)
 
@@ -122,8 +126,12 @@ local function road(points,width,name)
  end
  return m
 end
-road(offset(route,57),23,"Boulevard_Nord")
-road(offset(route,-57),23,"Boulevard_Sued")
+-- Die breiten Boulevards enden am Stadtrand. Der Landabschnitt bleibt bewusst ohne durchgehende Parallelstrasse.
+local urbanRoute={}
+for d=0,total*0.58,35 do local p=atDistance(route,d); urbanRoute[#urbanRoute+1]=p end
+local lastUrban=atDistance(route,total*0.58); urbanRoute[#urbanRoute+1]=lastUrban
+road(offset(urbanRoute,57),23,"Boulevard_Nord")
+road(offset(urbanRoute,-57),23,"Boulevard_Sued")
 local crossRoads={
  {Vector3.new(-1050,0,-1370),Vector3.new(-1000,0,-1120),Vector3.new(-980,0,-850),Vector3.new(-900,0,-580)},
  {Vector3.new(-450,0,-1370),Vector3.new(-420,0,-1110),Vector3.new(-390,0,-850),Vector3.new(-300,0,-600)},
@@ -241,7 +249,8 @@ local function station(name,distance)
 end
 station("Haltestelle_Westtor",total*0.18)
 station("Haltestelle_Stadtmitte",total*0.48)
-station("Haltestelle_Hafenpark",total*0.78)
+station("Haltestelle_Hafenpark",total*0.62)
+station("Haltestelle_Landbahnhof",total*0.91)
 
 -- Stadtgebaeude. Die Reihen folgen den Boulevardstrassen und stehen sichtbar naeher an der Tram.
 local buildings=model("Stadtgebaeude")
@@ -303,6 +312,55 @@ publicBuilding("Feuerwache",-1350,-650,92,64,24,col(195,190,178))
 publicBuilding("Schule",-450,1180,120,78,25,col(214,204,184))
 publicBuilding("Hafenhalle",1450,350,118,74,22,col(174,187,186))
 
+-- Ueberlandabschnitt: Felder, Wiesenstreifen, Baumgruppen und ein kleiner Hof.
+local countryside=folder("Ueberland_und_Landwirtschaft")
+for i=1,8 do
+ local d=total*(0.66+i*0.037)
+ local p,t,n=atDistance(route,d)
+ for side=-1,1,2 do
+  local q=p+n*(side*190)
+  local field=block(countryside,"Ackerfeld_"..i.."_"..side,Vector3.new(175,0.18,115),Vector3.new(q.X,0.07,q.Z),Enum.Material.Grass,(i%2==0) and col(151,157,91) or col(174,166,104),false)
+  field.CFrame=CFrame.lookAt(field.Position,field.Position+Vector3.new(t.X,0,t.Z))
+ end
+end
+-- Feldweg und Zufahrt zu einem kleinen Aussiedlerhof, nicht parallel zur Tramlinie.
+road(smooth({Vector3.new(2450,0,1450),Vector3.new(2700,0,1650),Vector3.new(3000,0,1740),Vector3.new(3260,0,1690)},10),9,"Landwirtschaftlicher_Feldweg")
+local farm=model("Aussiedlerhof",countryside)
+block(farm,"Wohnhaus",Vector3.new(34,18,28),Vector3.new(2940,9,1580),Enum.Material.Brick,col(190,160,130),true)
+block(farm,"Wohnhausdach",Vector3.new(38,2,32),Vector3.new(2940,19,1580),Enum.Material.Slate,C.steel,true)
+block(farm,"Scheune",Vector3.new(48,15,34),Vector3.new(3020,7.5,1650),Enum.Material.Wood,C.wood,true)
+block(farm,"Scheunendach",Vector3.new(53,2,39),Vector3.new(3020,16,1650),Enum.Material.Metal,col(105,76,59),true)
+for i=1,9 do
+ local x=2800+i*28
+ tree(x,1780+(i%2)*18,1.15)
+end
+
+-- Fest abgestellte, selbstgebaute Autos am Strassenrand (statisch, keine Bewegung).
+local parkedCars=folder("Statische_Autos")
+local carColors={col(180,55,48),col(55,91,142),col(210,193,145),col(65,105,76),col(65,66,70),col(220,220,210)}
+local function parkedCar(name,distance,side,colorIndex)
+ local p,t,n=atDistance(route,distance)
+ local center=p+n*(side*57)
+ local cf=CFrame.lookAt(Vector3.new(center.X,0.25,center.Z),Vector3.new(center.X,0.25,center.Z)+t)
+ local m=model(name,parkedCars)
+ local color=carColors[colorIndex]
+ part(m,"Karosserie",Vector3.new(7.2,2.1,13.5),cf*CFrame.new(0,1.25,0),Enum.Material.Metal,color,true)
+ part(m,"Fahrgastzelle",Vector3.new(6.1,2.0,6.7),cf*CFrame.new(0,3.1,-0.4),Enum.Material.Metal,color,true)
+ part(m,"Frontscheibe",Vector3.new(5.7,1.45,0.16),cf*CFrame.new(0,3.15,-3.82),Enum.Material.Glass,C.glass,false,0.12)
+ part(m,"Heckscheibe",Vector3.new(5.7,1.35,0.16),cf*CFrame.new(0,3.1,3.05),Enum.Material.Glass,C.glass,false,0.12)
+ for _,x in ipairs({-3.75,3.75}) do
+  for _,z in ipairs({-4.2,4.2}) do
+   local wheel=part(m,"Rad",Vector3.new(1.1,2.2,2.2),cf*CFrame.new(x,1.0,z)*CFrame.Angles(0,0,math.rad(90)),Enum.Material.Rubber,C.dark,true)
+   wheel.Shape=Enum.PartType.Cylinder
+  end
+ end
+ part(m,"Frontlicht_L",Vector3.new(0.22,0.5,1.1),cf*CFrame.new(-2.55,1.55,-6.85),Enum.Material.Neon,C.white,false)
+ part(m,"Frontlicht_R",Vector3.new(0.22,0.5,1.1),cf*CFrame.new(2.55,1.55,-6.85),Enum.Material.Neon,C.white,false)
+end
+for i,d in ipairs({180,310,455,590,730,870,1010,1150,1290,1430}) do
+ if d<total*0.54 then parkedCar("Parkendes_Auto_"..i,d,(i%2==0) and -1 or 1,((i-1)%#carColors)+1) end
+end
+
 -- Baeume und Stadtmobiliar auf Gehwegen und in Parks.
 local greenery=folder("Baeume_und_Stadtmobiliar")
 local function tree(x,z,scale)
@@ -355,8 +413,7 @@ end
 local ground=map:FindFirstChild("Stadtgebiet_Lindenhafen")
 if ground then ground.Position=Vector3.new(0,-ground.Size.Y/2,0) end
 
-print("[LINDENHAFEN V15] Neue offene Tramstrecke und groessere Stadt erstellt.")
-print("[LINDENHAFEN V15] Lange Geraden, mehrere Kurven, kein geschlossener Ring.")
-print("[LINDENHAFEN V15] Bahnsteige parallel zur Strecke; Strassen neben statt ueber den Gleisen.")
-print("[LINDENHAFEN V15] Depotanschluss mit zwei korrekt ausgerichteten Doppelgleisen.")
-print("[LINDENHAFEN V15] Alle Stadtteile sind unter Workspace > RNV_Mannheim_Map editierbar.")
+print("[LINDENHAFEN V16] Verlaengerte Tramstrecke mit Stadt-, Feld- und Ueberlandabschnitt erstellt.")
+print("[LINDENHAFEN V16] Stadtboulevards enden am Stadtrand; Landabschnitt ohne durchgehende Parallelstrasse.")
+print("[LINDENHAFEN V16] Statische, selbstgebaute Autos und Aussiedlerhof hinzugefuegt.")
+print("[LINDENHAFEN V16] Bodenflaeche vergroessert; alle Objekte bleiben editierbar.")
