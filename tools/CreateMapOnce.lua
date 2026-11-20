@@ -127,49 +127,38 @@ local route=smooth({
 },18)
 local total=pathLength(route)
 
--- Strassen parallel zur Tramtrasse: eigene Fahrbahnen, keine Asphaltdecke ueber den Gleisen.
+-- Strassen V19: markierte Fahrbahnen, saubere Gehwege und ausgebaute Kreuzungen.
 local roads=folder("Strassen_und_Kreuzungen")
+local roadPaths={}
 local function road(points,width,name)
- local m=model(name,roads)
- local leftC=offset(points,-width/2-0.8); local rightC=offset(points,width/2+0.8)
- local leftS=offset(points,-width/2-5.2); local rightS=offset(points,width/2+5.2)
+ local m=model(name,roads); roadPaths[#roadPaths+1]={points=points,width=width}
+ local lc=offset(points,-width/2-0.8); local rc=offset(points,width/2+0.8)
+ local ls=offset(points,-width/2-5.2); local rs=offset(points,width/2+5.2)
  for i=1,#points-1 do
   segment(m,"Fahrbahn",width,0.28,points[i],points[i+1],0.02,Enum.Material.Asphalt,C.asphalt,true)
-  segment(m,"Bordstein",0.8,0.28,leftC[i],leftC[i+1],0.14,Enum.Material.Concrete,C.curb,true)
-  segment(m,"Bordstein",0.8,0.28,rightC[i],rightC[i+1],0.14,Enum.Material.Concrete,C.curb,true)
-  segment(m,"Gehweg",8,0.2,leftS[i],leftS[i+1],0.12,Enum.Material.Concrete,C.sidewalk,true)
-  segment(m,"Gehweg",8,0.2,rightS[i],rightS[i+1],0.12,Enum.Material.Concrete,C.sidewalk,true)
+  segment(m,"Bordstein",0.8,0.28,lc[i],lc[i+1],0.14,Enum.Material.Concrete,C.curb,true)
+  segment(m,"Bordstein",0.8,0.28,rc[i],rc[i+1],0.14,Enum.Material.Concrete,C.curb,true)
+  segment(m,"Gehweg",8,0.2,ls[i],ls[i+1],0.12,Enum.Material.Concrete,C.sidewalk,true)
+  segment(m,"Gehweg",8,0.2,rs[i],rs[i+1],0.12,Enum.Material.Concrete,C.sidewalk,true)
+  local _,normal=basis(points,i)
+  for _,side in ipairs({-1,1}) do
+   segment(m,"Fahrbahnrandlinie",0.22,0.035,points[i]+normal*(side*(width/2-1.1)),points[i+1]+normal*(side*(width/2-1.1)),0.19,Enum.Material.SmoothPlastic,C.white,false)
+  end
+  if width>=16 then
+   local a,b=points[i],points[i+1]; local dir=(b-a).Unit; local length=(b-a).Magnitude
+   for d=5,length-4,24 do segment(m,"Mittellinienmarkierung",0.28,0.035,a+dir*d,a+dir*math.min(d+10,length),0.20,Enum.Material.SmoothPlastic,C.yellow,false) end
+  end
  end
  return m
 end
--- Die breiten Boulevards enden am Stadtrand. Der Landabschnitt bleibt bewusst ohne durchgehende Parallelstrasse.
 local urbanRoute={}
-for d=0,total*0.58,35 do local p=atDistance(route,d); urbanRoute[#urbanRoute+1]=p end
-local lastUrban=atDistance(route,total*0.58); urbanRoute[#urbanRoute+1]=lastUrban
+for d=0,total*0.58,35 do urbanRoute[#urbanRoute+1]=atDistance(route,d) end
+urbanRoute[#urbanRoute+1]=atDistance(route,total*0.58)
 road(offset(urbanRoute,57),23,"Boulevard_Nord")
 road(offset(urbanRoute,-57),23,"Boulevard_Sued")
--- Am Stadtrand zweigt eine richtige Landstrasse seitlich ab, statt abrupt zu enden.
-do
- local p,t,n=atDistance(route,total*0.58)
- local exitNodes={
-  p+n*57,
-  p+n*170+t*95,
-  p+n*310+t*210,
-  p+n*470+t*330,
-  p+n*650+t*470,
-  p+n*820+t*620
- }
- road(smooth(exitNodes,14),22,"Abzweigende_Landstrasse")
-end
--- Sanfte Verbindungen und Seitenstrassen in der zweiten Stadt, statt abrupt endender Strassen.
-road(smooth({
- Vector3.new(2850,0,300),Vector3.new(3000,0,120),Vector3.new(3220,0,70),
- Vector3.new(3450,0,120),Vector3.new(3620,0,280)
-},18),20,"Zweite_Stadt_Hauptstrasse")
-road(smooth({
- Vector3.new(3020,0,780),Vector3.new(3180,0,930),Vector3.new(3420,0,960),
- Vector3.new(3630,0,850)
-},18),18,"Zweite_Stadt_Quartierstrasse")
+do local p,t,n=atDistance(route,total*0.58); road(smooth({p+n*57,p+n*170+t*95,p+n*310+t*210,p+n*470+t*330,p+n*650+t*470,p+n*820+t*620},14),22,"Abzweigende_Landstrasse") end
+road(smooth({Vector3.new(2850,0,300),Vector3.new(3000,0,120),Vector3.new(3220,0,70),Vector3.new(3450,0,120),Vector3.new(3620,0,280)},18),20,"Zweite_Stadt_Hauptstrasse")
+road(smooth({Vector3.new(3020,0,780),Vector3.new(3180,0,930),Vector3.new(3420,0,960),Vector3.new(3630,0,850)},18),18,"Zweite_Stadt_Quartierstrasse")
 local crossRoads={
  {Vector3.new(-1050,0,-1370),Vector3.new(-1000,0,-1120),Vector3.new(-980,0,-850),Vector3.new(-900,0,-580)},
  {Vector3.new(-450,0,-1370),Vector3.new(-420,0,-1110),Vector3.new(-390,0,-850),Vector3.new(-300,0,-600)},
@@ -180,43 +169,35 @@ local crossRoads={
  {Vector3.new(1000,0,1250),Vector3.new(1250,0,1270),Vector3.new(1500,0,1280),Vector3.new(1800,0,1280)}
 }
 for i,nodes in ipairs(crossRoads) do road(smooth(nodes,12),22,"Quartiersstrasse_"..i) end
-
--- Strassenbahn-Bahnuebergang mit Andreaskreuzen, Blinksignalen und Schranken.
+-- Bahnuebergang V19: eigene Asphaltflaeche, Haltelinien, Warnstreifen und laengere Schranken.
 do
- local p,t,n=atDistance(route,total*0.34)
- local crossing=smooth({p+n*135,p+n*75,p-n*75,p-n*135},8)
- road(crossing,22,"Bahnuebergang_Strasse")
- local equipment=model("Schrankenanlage")
+ local p,t,n=atDistance(route,total*0.34); local crossing=model("Bahnuebergang",roads)
+ segment(crossing,"Ueberweg_Asphalt",34,0.32,p+n*55,p-n*55,0.12,Enum.Material.Asphalt,C.asphalt,true)
  for _,side in ipairs({-1,1}) do
-  local q=p+n*(side*39)
-  local polePos=q+t*13
-  block(equipment,"Schrankenmast",Vector3.new(1.4,7,1.4),Vector3.new(polePos.X,3.5,polePos.Z),Enum.Material.Metal,C.yellow,true)
-  block(equipment,"Signalgehause",Vector3.new(2.4,3.2,1.2),Vector3.new(polePos.X,7.5,polePos.Z),Enum.Material.Metal,C.dark,false)
-  for _,dx in ipairs({-0.65,0.65}) do
-   local lamp=block(equipment,"Warnleuchte",Vector3.new(0.65,0.65,0.35),Vector3.new(polePos.X+dx,7.6,polePos.Z-0.72),Enum.Material.Neon,col(220,45,38),false)
-   local light=Instance.new("PointLight"); light.Color=col(255,30,20); light.Brightness=0.7; light.Range=9; light.Parent=lamp
-  end
-  local armStart=q+t*10
-  local armEnd=q-t*10
-  segment(equipment,"Schrankenbaum",0.8,0.75,armStart,armEnd,4.2,Enum.Material.SmoothPlastic,C.white,false)
-  for k=1,8 do
-   local f=(k-0.5)/8
-   local a=armStart:Lerp(armEnd,f-0.5/8)
-   local b=armStart:Lerp(armEnd,f+0.5/8)
-   segment(equipment,"Rotweisser_Streifen",0.84,0.78,a,b,4.2,Enum.Material.SmoothPlastic,(k%2==0) and col(205,35,32) or C.white,false)
-  end
+  local stop=p+n*(side*18)
+  segment(crossing,"Haltelinie",0.45,0.05,stop-t*16,stop+t*16,0.34,Enum.Material.SmoothPlastic,C.white,false)
+  for k=-5,5 do segment(crossing,"Warnmarkierung",0.7,0.045,p+n*(side*31)+t*(k*2.5),p+n*(side*45)+t*(k*2.5),0.35,Enum.Material.SmoothPlastic,C.yellow,false) end
  end
- -- Andreaskreuze an beiden Strassenseiten.
+ local eq=model("Schrankenanlage",crossing)
  for _,side in ipairs({-1,1}) do
-  local q=p+n*(side*62)+t*23
-  block(equipment,"Andreaskreuz_Mast",Vector3.new(0.45,7,0.45),Vector3.new(q.X,3.5,q.Z),Enum.Material.Metal,C.steel,true)
-  local cross=block(equipment,"Andreaskreuz_Querbalken",Vector3.new(0.55,0.55,5),Vector3.new(q.X,6.5,q.Z),Enum.Material.SmoothPlastic,C.white,false)
-  local diag=block(equipment,"Andreaskreuz_Diagonalbalken",Vector3.new(0.55,0.55,5),Vector3.new(q.X,6.5,q.Z),Enum.Material.SmoothPlastic,C.white,false)
-  diag.CFrame=diag.CFrame*CFrame.Angles(0,0,math.rad(45))
+  local q=p+n*(side*58); local mast=q+t*22
+  block(eq,"Schrankenmast",Vector3.new(1.6,7.5,1.6),Vector3.new(mast.X,3.8,mast.Z),Enum.Material.Metal,C.yellow,true)
+  block(eq,"Signalgehause",Vector3.new(2.6,3.4,1.4),Vector3.new(mast.X,7.8,mast.Z),Enum.Material.Metal,C.dark,false)
+  for _,dx in ipairs({-0.72,0.72}) do
+   local lamp=block(eq,"Warnleuchte",Vector3.new(0.72,0.72,0.35),Vector3.new(mast.X+dx,7.9,mast.Z-0.82),Enum.Material.Neon,col(220,35,30),false)
+   local light=Instance.new("PointLight"); light.Color=col(255,25,20); light.Brightness=1; light.Range=12; light.Parent=lamp
+  end
+  local aa=q+t*18; local bb=q-t*18
+  segment(eq,"Schrankenbaum",0.95,0.9,aa,bb,4.35,Enum.Material.SmoothPlastic,C.white,false)
+  for k=1,12 do segment(eq,"Rotweisser_Streifen",1,0.94,aa:Lerp(bb,(k-1)/12),aa:Lerp(bb,k/12),4.35,Enum.Material.SmoothPlastic,(k%2==0) and col(205,35,32) or C.white,false) end
+  local sign=q+t*32
+  block(eq,"Andreaskreuz_Mast",Vector3.new(0.5,7,0.5),Vector3.new(sign.X,3.5,sign.Z),Enum.Material.Metal,C.steel,true)
+  local c2=block(eq,"Andreaskreuz_Arm_2",Vector3.new(0.55,0.55,5.8),Vector3.new(sign.X,6.6,sign.Z),Enum.Material.SmoothPlastic,C.white,false)
+  c2.CFrame=c2.CFrame*CFrame.Angles(0,0,math.rad(45))
  end
 end
 
--- Doppelgleis mit grossem Mittenabstand von 18 Studs.
+-- Doppelgleis mit grossem Mittenabstand von 18 Studs.-- Doppelgleis mit grossem Mittenabstand von 18 Studs.
 -- Schwellen quer zur Fahrtrichtung; Schienenkoepfe korrekt auf den Schienenstegen.
 local track=model("Doppelgleis_4_Schienen")
 local centers={-9,9}
@@ -487,18 +468,47 @@ end
 publicBuilding("Neustadt_Rathaus",3500,540,88,60,25,col(205,197,178))
 publicBuilding("Neustadt_Schule",2860,690,95,64,22,col(214,204,184))
 
--- Ueberlandabschnitt: Felder, Wiesenstreifen, Baumgruppen und ein kleiner Hof.
+-- Felder V19: abgegrenzte Ackerschlaege mit Furchen; Feldpositionen werden auf Strassenabstand geprueft.
 local countryside=folder("Ueberland_und_Landwirtschaft")
-for i=1,8 do
- local d=total*(0.66+i*0.037)
- local p,t,n=atDistance(route,d)
- for side=-1,1,2 do
-  local q=p+n*(side*190)
-  local field=block(countryside,"Ackerfeld_"..i.."_"..side,Vector3.new(175,0.18,115),Vector3.new(q.X,0.07,q.Z),Enum.Material.Grass,(i%2==0) and col(151,157,91) or col(174,166,104),false)
-  field.CFrame=CFrame.lookAt(field.Position,field.Position+Vector3.new(t.X,0,t.Z))
+local function pointSegmentDistance(p,a,b)
+ local ab=Vector3.new(b.X-a.X,0,b.Z-a.Z); local ap=Vector3.new(p.X-a.X,0,p.Z-a.Z)
+ local den=ab:Dot(ab); local u=den>0 and math.clamp(ap:Dot(ab)/den,0,1) or 0
+ local q=a+ab*u
+ return (Vector3.new(p.X-q.X,0,p.Z-q.Z)).Magnitude
+end
+local function clearField(center,halfWidth)
+ for i=1,#route-1 do if pointSegmentDistance(center,route[i],route[i+1])<235+halfWidth then return false end end
+ for _,rp in ipairs(roadPaths) do
+  for i=1,#rp.points-1 do if pointSegmentDistance(center,rp.points[i],rp.points[i+1])<rp.width/2+halfWidth+35 then return false end end
+ end
+ return true
+end
+local fieldCandidates={
+ {Vector3.new(2050,0,1550),Vector3.new(1,0,0),170,95},
+ {Vector3.new(2250,0,1830),Vector3.new(1,0,0),165,100},
+ {Vector3.new(1850,0,1900),Vector3.new(0,0,1),150,100},
+ {Vector3.new(3600,0,1450),Vector3.new(1,0,0),170,100},
+ {Vector3.new(3900,0,1650),Vector3.new(0,0,1),155,95},
+ {Vector3.new(4100,0,1250),Vector3.new(1,0,0),160,100},
+ {Vector3.new(1850,0,-250),Vector3.new(1,0,0),150,90},
+ {Vector3.new(2150,0,-450),Vector3.new(0,0,1),150,95}
+}
+local fieldColors={col(153,151,91),col(177,163,104),col(133,151,88),col(183,174,112)}
+for i,c in ipairs(fieldCandidates) do
+ local center,along,halfLength,halfWidth=c[1],c[2],c[3],c[4]
+ if clearField(center,halfWidth) then
+  local across=Vector3.new(-along.Z,0,along.X)
+  local field=model("Acker_"..i,countryside)
+  part(field,"Ackerboden",Vector3.new(halfWidth*2,0.2,halfLength*2),CFrame.lookAt(Vector3.new(center.X,0.08,center.Z),Vector3.new(center.X,0.08,center.Z)+along),Enum.Material.Ground,fieldColors[(i-1)%#fieldColors+1],false)
+  for row=-math.floor(halfWidth/9),math.floor(halfWidth/9) do
+   local lateral=row*9
+   segment(field,"Pflugfurche",0.38,0.12,center+across*lateral-along*(halfLength-8),center+across*lateral+along*(halfLength-8),0.24,Enum.Material.Ground,col(105,103,66),false)
+  end
+  for side=-1,1,2 do
+   segment(field,"Feldrain",3,0.2,center+across*(side*(halfWidth+3))-along*halfLength,center+across*(side*(halfWidth+3))+along*halfLength,0.2,Enum.Material.Grass,C.grass2,false)
+  end
  end
 end
--- Feldweg und Zufahrt zu einem kleinen Aussiedlerhof, nicht parallel zur Tramlinie.
 road(smooth({Vector3.new(2450,0,1450),Vector3.new(2700,0,1650),Vector3.new(3000,0,1740),Vector3.new(3260,0,1690)},10),9,"Landwirtschaftlicher_Feldweg")
 local farm=model("Aussiedlerhof",countryside)
 block(farm,"Wohnhaus",Vector3.new(34,18,28),Vector3.new(2940,9,1580),Enum.Material.Brick,col(190,160,130),true)
@@ -512,7 +522,7 @@ for i=1,9 do
  crown.Shape=Enum.PartType.Ball
 end
 
--- Fest abgestellte, selbstgebaute Autos am Strassenrand (statisch, keine Bewegung).
+-- Fest abgestellte, selbstgebaute Autos-- Fest abgestellte, selbstgebaute Autos am Strassenrand (statisch, keine Bewegung).
 local parkedCars=folder("Statische_Autos")
 local carColors={col(180,55,48),col(55,91,142),col(210,193,145),col(65,105,76),col(65,66,70),col(220,220,210)}
 local function parkedCar(name,distance,side,colorIndex)
