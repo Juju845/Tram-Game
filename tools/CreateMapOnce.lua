@@ -240,6 +240,48 @@ for laneIndex,centre in ipairs(centers) do
  end
 end
 
+-- Echter Wendebogen: verbindet die beiden Enden des bisherigen U-Bogens
+-- mit zwei separaten, durchgehenden Gleisverbindungen. Dadurch ist der Wendebereich befahrbar.
+do
+ local startIndex=1
+ local best=math.huge
+ for i,p in ipairs(route) do
+  local d=(p-Vector3.new(2700,0,320)).Magnitude
+  if d<best then best=d; startIndex=i end
+ end
+ local loopNodes={
+  route[#route],
+  Vector3.new(2520,0,760),
+  Vector3.new(2370,0,610),
+  Vector3.new(2350,0,440),
+  Vector3.new(2470,0,300),
+  route[startIndex]
+ }
+ local connector=smooth(loopNodes,24)
+ local loopModel=model("Wendeschleife_Gleisverbindungen",track)
+ for laneIndex,centre in ipairs(centers) do
+  local lane=model(laneIndex==1 and "Wendegleis_A" or "Wendegleis_B",loopModel)
+  local lp=offset(connector,centre)
+  for i=1,#lp-1 do
+   segment(lane,"Wendegleis_Bett",6.5,0.38,lp[i],lp[i+1],0.3,Enum.Material.Concrete,C.bed,true)
+  end
+  for d=0,pathLength(lp),8 do
+   local p,t=atDistance(lp,d)
+   local cf=CFrame.lookAt(Vector3.new(p.X,0.58,p.Z),Vector3.new(p.X,0.58,p.Z)+t)
+   part(lane,"Wendeschleifen_Schwelle",Vector3.new(5.9,0.22,1.35),cf,Enum.Material.Concrete,C.sleeper,true)
+  end
+  for _,gauge in ipairs({-1.5,1.5}) do
+   local rp=offset(connector,centre+gauge)
+   for i=1,#rp-1 do
+    segment(lane,"Wendeschleifen_Schienensteg",0.42,0.48,rp[i],rp[i+1],0.82,Enum.Material.Metal,C.dark,false)
+    segment(lane,"Wendeschleifen_Schienenkopf",0.66,0.2,rp[i],rp[i+1],1.13,Enum.Material.Metal,C.rail,false)
+   end
+  end
+ end
+ local loopSurface=model("Wendeschleifen_Innenflaeche",track)
+ block(loopSurface,"Innenflaeche",Vector3.new(145,0.25,250),Vector3.new(2445,0.12,530),Enum.Material.Grass,C.grass,false)
+end
+
 -- Depot: groesserer, detaillierter Betriebshof mit Werkstatt, Abstellgleisen und Servicebereich.
 local depot=model("Betriebshof")
 block(depot,"Hofplatte",Vector3.new(330,0.35,230),Vector3.new(-1770,0.1,-1000),Enum.Material.Concrete,C.sidewalk,true)
@@ -566,7 +608,8 @@ if groundFolder then
  end
 end
 
-print("[LINDENHAFEN V18] Grosse Gruenflaeche aus 60 editierbaren Kacheln erstellt.")
-print("[LINDENHAFEN V17] Tramstrecke deutlich verlaengert und Landstrasse am Stadtrand seitlich abgezweigt.")
+print("[LINDENHAFEN V19] Strassen, Haltestellen, Felder und Wendebereich ueberarbeitet.")
+print("[LINDENHAFEN V19] Wendeschleife mit zwei verbundenen Gleisen erstellt.")
+print("[LINDENHAFEN V19] Tramstrecke deutlich verlaengert und Landstrasse am Stadtrand seitlich abgezweigt.")
 print("[LINDENHAFEN V17] Gebaeudezeilen enden vor dem Ueberlandabschnitt; Felder und Hof bleiben erhalten.")
 print("[LINDENHAFEN V17] Alle Boden-Kacheln bleiben unter dem Roblox-Partlimit.")
